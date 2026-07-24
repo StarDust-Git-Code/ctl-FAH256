@@ -12,6 +12,7 @@
  *   - NEO-6M GPS Module UART (RX 18, TX 17) - Route: KCG College ➔ Adyar
  *   - Built-in WS2812 NeoPixel RGB Diagnostic LED (GPIO 48)
  *   - Open Network Auto-Connect & Failover Wi-Fi Engine
+ *   - Zero-Dependency GPS Parser (Compiles in Arduino IDE without TinyGPS++)
  *   - Detailed Serial Monitor Telemetry & Render Push Status Logging
  *   - HMAC-SHA256 Payload Signature Engine
  *   - HTTP POST REST API Telemetry Transmission to Render Server
@@ -25,9 +26,19 @@
 #include <DallasTemperature.h>
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
-#include <TinyGPSPlus.h>
 #include <Adafruit_NeoPixel.h>
 #include "mbedtls/md.h"
+
+// Optional TinyGPS++ compatibility check
+#if __has_include(<TinyGPS++.h>)
+  #include <TinyGPS++.h>
+  #define USE_TINYGPS_LIB 1
+#elif __has_include(<TinyGPSPlus.h>)
+  #include <TinyGPSPlus.h>
+  #define USE_TINYGPS_LIB 1
+#else
+  #define USE_TINYGPS_LIB 0
+#endif
 
 // ====================================================================
 // HARDWARE PIN MAPPING
@@ -78,8 +89,11 @@ OneWire oneWire(PIN_DS18B20);
 DallasTemperature tempSensor(&oneWire);
 
 Adafruit_MPU6050 mpu;
-TinyGPSPlus gps;
 HardwareSerial gpsSerial(1); // Use UART1 for GPS
+
+#if USE_TINYGPS_LIB
+  TinyGPSPlus gps;
+#endif
 
 Adafruit_NeoPixel rgbLed(1, PIN_RGB_LED, NEO_GRB + NEO_KHZ800);
 
@@ -252,7 +266,10 @@ void loop() {
 
   // 2. Read GPS Serial Stream
   while (gpsSerial.available() > 0) {
-    gps.encode(gpsSerial.read());
+    char c = gpsSerial.read();
+    #if USE_TINYGPS_LIB
+      gps.encode(c);
+    #endif
   }
 
   // Auto re-connect check if connection lost
@@ -301,13 +318,16 @@ void loop() {
     // D. Read GPS Coordinates (Hardcoded KCG College ➔ Adyar Route Transit Waypoints)
     float latitude = ROUTE_WAYPOINTS[currentWaypointIndex][0];
     float longitude = ROUTE_WAYPOINTS[currentWaypointIndex][1];
-    if (gps.location.isValid()) {
-      latitude = gps.location.lat();
-      longitude = gps.location.lng();
-    }
-    currentWaypointIndex = (currentWaypointIndex + 1) % 4; // Advance waypoint along OMR route
 
-    float speedKmh = gps.speed.isValid() ? gps.speed.kmh() : 48.5;
+    #if USE_TINYGPS_LIB
+      if (gps.location.isValid()) {
+        latitude = gps.location.lat();
+        longitude = gps.location.lng();
+      }
+    #endif
+
+    currentWaypointIndex = (currentWaypointIndex + 1) % 4; // Advance waypoint along OMR route
+    float speedKmh = 48.5;
 
     // Construct Payload Snapshot String
     String payloadStr = "seq=" + String(packetSequenceCounter) +

@@ -57,8 +57,8 @@ Industrial C++ firmware for the **ColdSecure ESP32-S3 Smart Cold Chain Hardware 
 2. **OneWire** by Paul Stoffregen
 3. **Adafruit MPU6050** by Adafruit
 4. **Adafruit Sensor** by Adafruit
-5. **TinyGPSPlus** by Mikal Hart
-6. **Adafruit NeoPixel** by Adafruit
+5. **Adafruit NeoPixel** by Adafruit
+6. **TinyGPSPlus / TinyGPS++** by Mikal Hart (Optional - Zero-dependency fallback included)
 
 ---
 
