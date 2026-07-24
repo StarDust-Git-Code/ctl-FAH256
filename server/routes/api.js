@@ -11,6 +11,7 @@ import {
   getAlerts,
   createAlert,
   getTelemetry,
+  ingestTelemetry,
   getChainOfCustody,
   addCustodyHandoff,
   getFleet,
@@ -44,8 +45,10 @@ router.delete('/shipments/:id', deleteShipment);
 router.get('/alerts', getAlerts);
 router.post('/alerts', createAlert);
 
-// Telemetry API
+// Telemetry Ingestion & Query API
 router.get('/telemetry/:shipmentId', getTelemetry);
+router.post('/telemetry', ingestTelemetry);
+router.post('/telemetry/:shipmentId', ingestTelemetry);
 
 // Chain of Custody API
 router.get('/custody', getChainOfCustody);

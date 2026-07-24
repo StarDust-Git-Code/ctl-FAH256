@@ -65,6 +65,77 @@ export const getTelemetry = (req, res) => {
   res.json({ success: true, shipmentId, data: store.telemetrySeries });
 };
 
+export const ingestTelemetry = (req, res) => {
+  const { shipmentId } = req.params;
+  const targetId = shipmentId || req.body.shipmentId || 'SHP-88219';
+
+  const telemetryPoint = {
+    timestamp: new Date().toISOString(),
+    shipmentId: targetId,
+    temp: Number(req.body.currentTemp !== undefined ? req.body.currentTemp : (req.body.temp || -72.4)),
+    humidity: 58,
+    lat: req.body.gps?.lat || 12.9100,
+    lng: req.body.gps?.lng || 80.2285,
+    speed: req.body.gps?.speed || "48.5 km/h",
+    tamperStatus: req.body.tamperStatus || "SECURE",
+    motionDetected: Boolean(req.body.motionDetected),
+    shockDetected: Boolean(req.body.shockDetected),
+    source: req.body.source || "KCG College of Technology, Karapakkam, Chennai",
+    destination: req.body.destination || "Adyar Courier Service, Chennai",
+    accel: req.body.accel || { x: 0, y: 0, z: 9.81 },
+    hmacSignature: req.body.hmacSignature || "HMAC_OK"
+  };
+
+  store.telemetrySeries.push(telemetryPoint);
+  if (store.telemetrySeries.length > 200) {
+    store.telemetrySeries.shift();
+  }
+
+  // Update existing shipment or auto-create active shipment
+  let shp = store.getShipmentById(targetId);
+  if (!shp) {
+    shp = store.createShipment({
+      cargoName: "ESP32-S3 Smart Cold Chain Hardware Telemetry",
+      cargoType: "Ultra-Low Vaccine Payload",
+      source: telemetryPoint.source,
+      destination: telemetryPoint.destination,
+      currentTemp: telemetryPoint.temp,
+    });
+    shp.id = targetId;
+  } else {
+    shp.currentTemp = telemetryPoint.temp;
+    shp.tamperStatus = telemetryPoint.tamperStatus;
+    shp.location = {
+      lat: telemetryPoint.lat,
+      lng: telemetryPoint.lng,
+      name: `${telemetryPoint.source} ➔ ${telemetryPoint.destination}`
+    };
+  }
+
+  // Auto-trigger alert if tamper detected
+  if (telemetryPoint.tamperStatus === 'POTENTIAL_BREACH' || telemetryPoint.motionDetected || telemetryPoint.shockDetected) {
+    shp.status = 'CRITICAL_ALERT';
+    store.createAlert({
+      severity: 'HIGH',
+      type: 'Hardware Tamper Breach',
+      message: `ESP32-S3 Gateway detected hatch breach/motion at Lat ${telemetryPoint.lat}, Lng ${telemetryPoint.lng}`,
+      shipmentId: targetId,
+      location: 'KCG College to Adyar Transit Corridor'
+    });
+  } else {
+    if (shp.status === 'CRITICAL_ALERT') shp.status = 'IN_TRANSIT';
+  }
+
+  store.saveToDisk();
+
+  res.status(200).json({
+    success: true,
+    message: "ESP32-S3 Telemetry packet ingested successfully",
+    shipmentId: targetId,
+    receivedSequence: req.body.seq || 1
+  });
+};
+
 export const getChainOfCustody = (req, res) => {
   res.json({ success: true, data: store.getChainOfCustody() });
 };
