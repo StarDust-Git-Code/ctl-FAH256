@@ -93,6 +93,13 @@ export const apiService = {
     return fetchJson('/custody');
   },
 
+  async addCustodyHandoff(handoffData) {
+    return fetchJson('/custody/handoff', {
+      method: 'POST',
+      body: JSON.stringify(handoffData),
+    });
+  },
+
   // Fleet
   async getFleet() {
     return fetchJson('/fleet');

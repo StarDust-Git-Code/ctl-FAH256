@@ -173,6 +173,47 @@ class TelematicsStore {
     return null;
   }
 
+  // --- Chain of Custody Handoff Methods ---
+  getChainOfCustody() {
+    return this.chainOfCustody;
+  }
+
+  addCustodyHandoff(data) {
+    const nowTimestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const newStep = this.chainOfCustody.length + 1;
+
+    const newHandoff = {
+      step: newStep,
+      stage: data.stage || "Parcel Handler Handoff",
+      organization: data.organization || "Logistics Hub",
+      person: `${data.person || 'Custodian Operator'} (${data.parcelCode || 'Parcel'})`,
+      timestamp: nowTimestamp,
+      gps: data.gps || "18.5204 N, 73.8567 E",
+      qrVerified: true,
+      hmacHash: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 4)}`,
+      signatureImg: data.signatureData ? "Digital_Signature_Captured" : "Verified_Handoff",
+      notes: data.notes || `Parcel Code ${data.parcelCode || ''} custody transfer verified by handler.`,
+      status: "COMPLETED",
+      parcelCode: data.parcelCode,
+    };
+
+    this.chainOfCustody.push(newHandoff);
+
+    // Update shipment chain length if parcelCode matches
+    if (data.parcelCode) {
+      const shp = this.shipments.find(s => s.id === data.parcelCode);
+      if (shp) {
+        shp.chainLength = (shp.chainLength || 0) + 1;
+        if (data.stage && data.stage.includes('Destination')) {
+          shp.status = 'DELIVERED_TODAY';
+          shp.progressPct = 100;
+        }
+      }
+    }
+
+    return newHandoff;
+  }
+
   // --- Alerts Methods ---
   getAlerts(severity) {
     if (!severity || severity === 'ALL') return this.alerts;

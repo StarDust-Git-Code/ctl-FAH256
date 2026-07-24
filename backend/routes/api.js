@@ -12,6 +12,7 @@ import {
   createAlert,
   getTelemetry,
   getChainOfCustody,
+  addCustodyHandoff,
   getFleet,
   getDrivers,
   getDevices,
@@ -48,6 +49,7 @@ router.get('/telemetry/:shipmentId', getTelemetry);
 
 // Chain of Custody API
 router.get('/custody', getChainOfCustody);
+router.post('/custody/handoff', addCustodyHandoff);
 
 // Fleet API
 router.get('/fleet', getFleet);

@@ -66,7 +66,12 @@ export const getTelemetry = (req, res) => {
 };
 
 export const getChainOfCustody = (req, res) => {
-  res.json({ success: true, data: store.chainOfCustody });
+  res.json({ success: true, data: store.getChainOfCustody() });
+};
+
+export const addCustodyHandoff = (req, res) => {
+  const handoff = store.addCustodyHandoff(req.body);
+  res.status(201).json({ success: true, message: 'Custody handoff logged and persisted', data: handoff });
 };
 
 export const getFleet = (req, res) => {
