@@ -70,8 +70,8 @@ uint8_t currentWaypointIndex = 0;
 // ====================================================================
 // NETWORK & API CONFIGURATION
 // ====================================================================
-const char* DEFAULT_WIFI_SSID = "YOUR_WIFI_SSID";
-const char* DEFAULT_WIFI_PASS = "YOUR_WIFI_PASSWORD";
+const char* DEFAULT_WIFI_SSID = "log";
+const char* DEFAULT_WIFI_PASS = "123321123";
 
 // Render REST API Backend Endpoint
 const char* API_URL = "https://ctl-fah256.onrender.com/api/telemetry/SHP-88219";
