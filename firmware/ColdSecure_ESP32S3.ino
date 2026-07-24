@@ -382,15 +382,15 @@ void loop() {
       http.addHeader("Content-Type", "application/json");
 
       int httpResponseCode = http.POST(jsonPayload);
-      if (httpResponseCode > 0) {
+      if (httpResponseCode >= 200 && httpResponseCode <= 299) {
         Serial.println("====================================================");
         Serial.println("  🚀 [RENDER PUSH SUCCESS] HTTP " + String(httpResponseCode) + " OK!");
-        Serial.println("  Data successfully pushed to Render backend server.");
+        Serial.println("  Data successfully ingested by Render backend server.");
         Serial.println("====================================================");
       } else {
         Serial.println("====================================================");
-        Serial.println("  ❌ [RENDER PUSH FAILED] Error: " + http.errorToString(httpResponseCode));
-        Serial.println("  Check server status or network connection.");
+        Serial.println("  ❌ [RENDER PUSH FAILED] HTTP Response Code: " + String(httpResponseCode));
+        Serial.println("  Server returned error or endpoint route missing.");
         Serial.println("====================================================");
       }
       http.end();
