@@ -111,24 +111,26 @@ export const verifyIntegrity = (req, res) => {
 };
 
 export const getAnalytics = (req, res) => {
+  const hasShipments = store.shipments.length > 0;
+  const hasAlerts = store.alerts.length > 0;
+
   res.json({
     success: true,
     data: {
-      riskIndex: store.shipments.length > 0 ? 14.2 : 0,
-      failureHorizonHours: 1.2,
-      successRatePct: 99.4,
-      alertDistribution: [
-        { name: 'Temp High Excursion', count: store.alerts.length > 0 ? 14 : 0, color: '#ef4444' },
-        { name: 'Cellular Signal Drop', count: store.alerts.length > 0 ? 8 : 0, color: '#f59e0b' },
-        { name: 'Door Tamper Optical', count: store.alerts.length > 0 ? 3 : 0, color: '#ec4899' },
-        { name: 'Toll Delay Checkpoint', count: store.alerts.length > 0 ? 19 : 0, color: '#3b82f6' },
-      ],
-      driverMatrix: [
-        { name: 'Marcus Vance', score: 98, delays: 1 },
-        { name: 'Sarah Jenkins', score: 100, delays: 0 },
-        { name: 'Vikram Sharma', score: 82, delays: 3 },
-        { name: 'Arjun Reddy', score: 95, delays: 1 },
-      ]
+      riskIndex: hasShipments ? 14.2 : 0,
+      failureHorizonHours: hasAlerts ? 1.2 : 0,
+      successRatePct: hasShipments ? 99.4 : 100,
+      alertDistribution: hasAlerts ? [
+        { name: 'Temp High Excursion', count: 14, color: '#ef4444' },
+        { name: 'Cellular Signal Drop', count: 8, color: '#f59e0b' },
+        { name: 'Door Tamper Optical', count: 3, color: '#ec4899' },
+        { name: 'Toll Delay Checkpoint', count: 19, color: '#3b82f6' },
+      ] : [],
+      driverMatrix: store.drivers.map(d => ({
+        name: d.name,
+        score: 98,
+        delays: 0
+      }))
     }
   });
 };

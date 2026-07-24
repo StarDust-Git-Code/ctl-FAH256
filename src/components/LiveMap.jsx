@@ -7,13 +7,14 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
   const leafletInstance = useRef(null);
   const tileLayerRef = useRef(null);
   const markersRef = useRef([]);
+  const polylinesRef = useRef([]);
   const [showGeofences, setShowGeofences] = useState(true);
 
   useEffect(() => {
     if (!mapRef.current) return;
     if (leafletInstance.current) return;
 
-    // Center map over India transit corridor
+    // Center map over transit corridor
     const map = L.map(mapRef.current, {
       center: [20.5937, 78.9629],
       zoom: 5,
@@ -36,51 +37,6 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
     baseTile.addTo(map);
     tileLayerRef.current = baseTile;
 
-    // Render Routes (Polylines)
-    const routes = [
-      {
-        id: 'SHP-88219',
-        coords: [[18.5204, 73.8567], [21.1458, 79.0882], [26.8467, 80.9462], [28.5672, 77.2100]],
-        color: '#3b82f6', // Neon Electric Blue
-      },
-      {
-        id: 'SHP-90142',
-        coords: [[28.4595, 77.0266], [21.1458, 79.0882], [17.3850, 78.4867], [13.0827, 80.2707]],
-        color: '#ef4444', // Neon Red Alert
-      },
-      {
-        id: 'SHP-77401',
-        coords: [[19.0760, 72.8777], [19.0178, 72.8478]],
-        color: '#10b981', // Neon Emerald
-      }
-    ];
-
-    routes.forEach(r => {
-      L.polyline(r.coords, {
-        color: r.color,
-        weight: 4,
-        opacity: 0.9,
-        dashArray: '8, 8',
-      }).addTo(map);
-    });
-
-    // Render Geofences (Circles)
-    if (showGeofences) {
-      L.circle([28.5672, 77.2100], {
-        color: '#10b981',
-        fillColor: '#10b981',
-        fillOpacity: 0.15,
-        radius: 40000,
-      }).bindTooltip("Geofence: AIIMS Delhi Secure Zone (40km)", { permanent: false }).addTo(map);
-
-      L.circle([17.3850, 78.4867], {
-        color: '#ef4444',
-        fillColor: '#ef4444',
-        fillOpacity: 0.18,
-        radius: 35000,
-      }).bindTooltip("Geofence: Hyderabad Alert Sector", { permanent: false }).addTo(map);
-    }
-
     return () => {
       if (leafletInstance.current) {
         leafletInstance.current.remove();
@@ -89,26 +45,36 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
     };
   }, []);
 
-  // Update Tile Layer if Theme Changes dynamically
-  useEffect(() => {
-    if (!leafletInstance.current || !tileLayerRef.current) return;
-    const tileUrl = isDarkMode
-      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-    
-    tileLayerRef.current.setUrl(tileUrl);
-  }, [isDarkMode]);
-
+  // Dynamic Route Lines & Markers Rendering
   useEffect(() => {
     const map = leafletInstance.current;
     if (!map) return;
 
+    // Clear previous markers & polylines
     markersRef.current.forEach(m => map.removeLayer(m));
     markersRef.current = [];
 
+    polylinesRef.current.forEach(p => map.removeLayer(p));
+    polylinesRef.current = [];
+
     const activeFleet = fleet || [];
+    const activeShipments = shipments || [];
+
+    // Render polyline routes dynamically for active shipments
+    activeShipments.forEach(shp => {
+      if (shp.location && shp.location.lat && shp.location.lng) {
+        const poly = L.polyline([[shp.location.lat, shp.location.lng]], {
+          color: '#3b82f6',
+          weight: 4,
+          opacity: 0.9,
+          dashArray: '8, 8',
+        }).addTo(map);
+        polylinesRef.current.push(poly);
+      }
+    });
+
     activeFleet.forEach(item => {
-      const isCritical = item.vehicleStatus?.includes('WARNING') || item.vehicleId === 'VAN-204';
+      const isCritical = item.vehicleStatus?.includes('WARNING') || item.vehicleStatus?.includes('ALERT');
       
       const customIcon = L.divIcon({
         className: 'custom-vehicle-marker',
@@ -139,18 +105,30 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
         </div>
       `;
 
-      const marker = L.marker([item.gps.lat, item.gps.lng], { icon: customIcon })
-        .bindPopup(popupContent)
-        .addTo(map);
+      if (item.gps && item.gps.lat && item.gps.lng) {
+        const marker = L.marker([item.gps.lat, item.gps.lng], { icon: customIcon })
+          .bindPopup(popupContent)
+          .addTo(map);
 
-      markersRef.current.push(marker);
+        markersRef.current.push(marker);
 
-      if (selectedShipmentId && item.assignedShipment === selectedShipmentId) {
-        map.setView([item.gps.lat, item.gps.lng], 9);
-        marker.openPopup();
+        if (selectedShipmentId && item.assignedShipment === selectedShipmentId) {
+          map.setView([item.gps.lat, item.gps.lng], 9);
+          marker.openPopup();
+        }
       }
     });
-  }, [fleet, selectedShipmentId, isDarkMode]);
+  }, [fleet, shipments, selectedShipmentId, isDarkMode]);
+
+  // Update Tile Layer if Theme Changes dynamically
+  useEffect(() => {
+    if (!leafletInstance.current || !tileLayerRef.current) return;
+    const tileUrl = isDarkMode
+      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    
+    tileLayerRef.current.setUrl(tileUrl);
+  }, [isDarkMode]);
 
   return (
     <div className={`rounded-xl p-4 relative border transition-colors ${

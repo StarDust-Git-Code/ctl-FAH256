@@ -5,9 +5,9 @@ import { apiService } from '../services/api';
 
 export default function AnalyticsView({ isDarkMode = true }) {
   const [analyticsData, setAnalyticsData] = useState({
-    riskIndex: 14.2,
-    failureHorizonHours: 1.2,
-    successRatePct: 99.4,
+    riskIndex: 0,
+    failureHorizonHours: 0,
+    successRatePct: 100,
     alertDistribution: [],
     driverMatrix: [],
   });
@@ -57,23 +57,31 @@ export default function AnalyticsView({ isDarkMode = true }) {
         <div className={`${cardBg} rounded-xl p-5 space-y-3`}>
           <span className={`text-xs font-bold uppercase tracking-wider ${subText}`}>AI Thermal Risk Index</span>
           <div className="text-3xl font-black text-emerald-400 font-mono">{analyticsData.riskIndex} / 100</div>
-          <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Overall fleet thermal risk is low. Insulation integrity across reefer fleet is nominal.</p>
+          <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Overall fleet thermal risk. Insulation integrity across reefer fleet is nominal.</p>
         </div>
 
         <div className={`rounded-xl p-5 border space-y-3 ${
-          isDarkMode ? 'bg-red-950/40 border-red-900/80 text-red-200 shadow-lg' : 'bg-red-50/60 border-red-200 text-red-900 shadow-xs'
+          analyticsData.failureHorizonHours > 0
+            ? isDarkMode ? 'bg-red-950/40 border-red-900/80 text-red-200 shadow-lg' : 'bg-red-50/60 border-red-200 text-red-900 shadow-xs'
+            : cardBg
         }`}>
           <span className="text-xs font-bold text-red-400 uppercase tracking-wider flex items-center gap-1">
-            <AlertTriangle className="w-4 h-4 text-red-500 animate-pulse" /> Failure Horizon Alert
+            <AlertTriangle className="w-4 h-4 text-red-500" /> Failure Horizon Alert
           </span>
-          <div className="text-3xl font-black text-red-400 font-mono">{analyticsData.failureHorizonHours} Hours</div>
-          <p className="text-xs opacity-90">Shipment SHP-90142 (Heart Transplant) predicted to breach safe window (+6°C) within 72 minutes without compressor restart.</p>
+          <div className="text-3xl font-black text-red-400 font-mono">
+            {analyticsData.failureHorizonHours > 0 ? `${analyticsData.failureHorizonHours} Hours` : '0 Hours (Nominal)'}
+          </div>
+          <p className="text-xs opacity-90">
+            {analyticsData.failureHorizonHours > 0
+              ? 'Active thermal degradation model prediction active.'
+              : 'Zero active shipments predicted to breach safe window.'}
+          </p>
         </div>
 
         <div className={`${cardBg} rounded-xl p-5 space-y-3`}>
           <span className={`text-xs font-bold uppercase tracking-wider ${subText}`}>Delivery Success Rate</span>
           <div className="text-3xl font-black text-blue-400 font-mono">{analyticsData.successRatePct}%</div>
-          <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>4,810 of 4,839 shipments delivered with 0 temperature excursions in past 30 days.</p>
+          <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Shipments delivered with 0 temperature excursions in past 30 days.</p>
         </div>
       </div>
 
@@ -86,17 +94,23 @@ export default function AnalyticsView({ isDarkMode = true }) {
             ALERT FREQUENCY DISTRIBUTION
           </h3>
           <div className="h-[260px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={analyticsData.alertDistribution} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                  {analyticsData.alertDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: isDarkMode ? '#0f172a' : '#ffffff', borderColor: isDarkMode ? '#334155' : '#cbd5e1', borderRadius: '8px', color: isDarkMode ? '#f8fafc' : '#0f172a', fontSize: '12px' }} />
-                <Legend wrapperStyle={{ fontSize: '11px', color: isDarkMode ? '#cbd5e1' : '#0f172a' }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {analyticsData.alertDistribution.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-xs font-mono text-slate-400 border border-dashed rounded-xl">
+                Zero alert frequency distribution data.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={analyticsData.alertDistribution} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                    {analyticsData.alertDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: isDarkMode ? '#0f172a' : '#ffffff', borderColor: isDarkMode ? '#334155' : '#cbd5e1', borderRadius: '8px', color: isDarkMode ? '#f8fafc' : '#0f172a', fontSize: '12px' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', color: isDarkMode ? '#cbd5e1' : '#0f172a' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -107,15 +121,21 @@ export default function AnalyticsView({ isDarkMode = true }) {
             DRIVER COMPLIANCE MATRIX SCORECARD
           </h3>
           <div className="h-[260px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analyticsData.driverMatrix}>
-                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#1e293b' : '#e2e8f0'} />
-                <XAxis dataKey="name" stroke={isDarkMode ? '#94a3b8' : '#64748b'} tick={{ fontSize: 11 }} />
-                <YAxis stroke={isDarkMode ? '#94a3b8' : '#64748b'} tick={{ fontSize: 11 }} domain={[0, 100]} />
-                <Tooltip contentStyle={{ backgroundColor: isDarkMode ? '#0f172a' : '#ffffff', borderColor: isDarkMode ? '#334155' : '#cbd5e1', borderRadius: '8px', color: isDarkMode ? '#f8fafc' : '#0f172a', fontSize: '12px' }} />
-                <Bar dataKey="score" name="Compliance Rating (%)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {analyticsData.driverMatrix.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-xs font-mono text-slate-400 border border-dashed rounded-xl">
+                No active drivers registered in API.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analyticsData.driverMatrix}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#1e293b' : '#e2e8f0'} />
+                  <XAxis dataKey="name" stroke={isDarkMode ? '#94a3b8' : '#64748b'} tick={{ fontSize: 11 }} />
+                  <YAxis stroke={isDarkMode ? '#94a3b8' : '#64748b'} tick={{ fontSize: 11 }} domain={[0, 100]} />
+                  <Tooltip contentStyle={{ backgroundColor: isDarkMode ? '#0f172a' : '#ffffff', borderColor: isDarkMode ? '#334155' : '#cbd5e1', borderRadius: '8px', color: isDarkMode ? '#f8fafc' : '#0f172a', fontSize: '12px' }} />
+                  <Bar dataKey="score" name="Compliance Rating (%)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
