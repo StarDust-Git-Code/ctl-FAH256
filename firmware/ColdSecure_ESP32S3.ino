@@ -3,11 +3,12 @@
  * FAH256 ColdSecure ESP32-S3 Smart Cold Chain Telematics Firmware
  * ====================================================================
  * Hardware: ESP32-S3 DevKit
+ * Route: KCG College of Technology (Karapakkam) ➔ Adyar Courier Hub, Chennai
  * Features:
  *   - DS18B20 OneWire Temp Probe (GPIO 4)
  *   - PIR Motion & Hatch Tamper Detection (GPIO 5)
  *   - MPU6050 6-Axis Accelerometer/Gyroscope I2C (SDA 8, SCL 9)
- *   - NEO-6M GPS Module UART (RX 18, TX 17)
+ *   - NEO-6M GPS Module UART (RX 18, TX 17) - Route: KCG College ➔ Adyar
  *   - Built-in WS2812 NeoPixel RGB Diagnostic LED (GPIO 48)
  *   - Open Network Auto-Connect & Failover Wi-Fi Engine
  *   - HMAC-SHA256 Payload Signature Engine
@@ -36,6 +37,21 @@
 #define PIN_GPS_TX   17  // ESP32 TX -> GPS RX (Optional)
 #define PIN_GPS_RX   18  // ESP32 RX <- GPS TX
 #define PIN_RGB_LED  48  // Built-in WS2812 NeoPixel DIN
+
+// ====================================================================
+// HARDCODED TRANSIT ROUTE: KCG COLLEGE TO ADYAR COURIER SERVICE
+// ====================================================================
+const char* ROUTE_ORIGIN = "KCG College of Technology, Karapakkam, Chennai";
+const char* ROUTE_DESTINATION = "Adyar Courier Service, Chennai";
+
+// Waypoints Array: KCG College ➔ Perungudi ➔ Thiruvanmiyur ➔ Adyar Depot
+const float ROUTE_WAYPOINTS[4][2] = {
+  { 12.9100, 80.2285 }, // KCG College of Technology, Karapakkam
+  { 12.9400, 80.2370 }, // Perungudi OMR Toll
+  { 12.9700, 80.2480 }, // Thiruvanmiyur Signal
+  { 13.0067, 80.2571 }  // Adyar Courier Service Hub
+};
+uint8_t currentWaypointIndex = 0;
 
 // ====================================================================
 // NETWORK & API CONFIGURATION
@@ -140,6 +156,7 @@ void setup() {
 
   Serial.println("\n====================================================");
   Serial.println("  FAH256 ColdSecure ESP32-S3 Firmware Booting...");
+  Serial.println("  Route: KCG College (Karapakkam) -> Adyar Courier");
   Serial.println("====================================================");
 
   // Initialize Built-in RGB LED (GPIO 48) -> White (Booting)
@@ -237,10 +254,16 @@ void loop() {
     float totalAccel = sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ);
     bool shockDetected = (totalAccel > 15.0); // Shock threshold > 15 m/s²
 
-    // 4. Read GPS Coordinates
-    float latitude = gps.location.isValid() ? gps.location.lat() : 26.8467;
-    float longitude = gps.location.isValid() ? gps.location.lng() : 80.9462;
-    float speedKmh = gps.speed.isValid() ? gps.speed.kmh() : 72.0;
+    // 4. Read GPS Coordinates (Hardcoded KCG College ➔ Adyar Route Transit Waypoints)
+    float latitude = ROUTE_WAYPOINTS[currentWaypointIndex][0];
+    float longitude = ROUTE_WAYPOINTS[currentWaypointIndex][1];
+    if (gps.location.isValid()) {
+      latitude = gps.location.lat();
+      longitude = gps.location.lng();
+    }
+    currentWaypointIndex = (currentWaypointIndex + 1) % 4; // Advance waypoint along OMR route
+
+    float speedKmh = gps.speed.isValid() ? gps.speed.kmh() : 48.5;
 
     // Check Tamper Alert State
     bool tamperAlert = motionDetected || shockDetected;
@@ -267,6 +290,8 @@ void loop() {
     jsonPayload += "\"currentTemp\":" + String(currentTempC, 2) + ",";
     jsonPayload += "\"minSafeTemp\":-80.0,";
     jsonPayload += "\"maxSafeTemp\":-60.0,";
+    jsonPayload += "\"source\":\"" + String(ROUTE_ORIGIN) + "\",";
+    jsonPayload += "\"destination\":\"" + String(ROUTE_DESTINATION) + "\",";
     jsonPayload += "\"motionDetected\":" + String(motionDetected ? "true" : "false") + ",";
     jsonPayload += "\"shockDetected\":" + String(shockDetected ? "true" : "false") + ",";
     jsonPayload += "\"tamperStatus\":\"" + String(tamperAlert ? "POTENTIAL_BREACH" : "SECURE") + "\",";
@@ -278,6 +303,7 @@ void loop() {
 
     Serial.println("\n----------------------------------------------------");
     Serial.println("[TELEMETRY PACKET #" + String(packetSequenceCounter) + "]");
+    Serial.println("Route: KCG College (Karapakkam) -> Adyar Courier Service");
     Serial.println("Payload JSON: " + jsonPayload);
     Serial.println("HMAC Signature: " + hmacSig);
 

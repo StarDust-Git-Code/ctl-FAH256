@@ -4,7 +4,15 @@ Industrial C++ firmware for the **ColdSecure ESP32-S3 Smart Cold Chain Hardware 
 
 ---
 
-## 🛠️ Complete Hardware Pinout Mapping
+## 📍 Configured Route
+
+- **Origin**: `KCG College of Technology, Karapakkam, Chennai` (`12.9100° N, 80.2285° E`)
+- **Destination**: `Adyar Courier Service, Chennai` (`13.0067° N, 80.2571° E`)
+- **OMR Transit Checkpoints**: Karapakkam ➔ Perungudi Toll ➔ Thiruvanmiyur Signal ➔ Adyar Hub
+
+---
+
+## 🛠️ Hardware Pinout Mapping
 
 | Component | Pin | Function | Notes |
 |-----------|-----|----------|-------|
@@ -23,7 +31,7 @@ Industrial C++ firmware for the **ColdSecure ESP32-S3 Smart Cold Chain Hardware 
 | Color | Meaning |
 |-------|---------|
 | ⚪ **White** | Booting hardware peripherals |
-| 🔵 **Blue** | Connecting to Wi-Fi network |
+| 🔵 **Blue** | Connecting to Wi-Fi network / Scanning OPEN networks |
 | 🟢 **Green** | System healthy & operating in normal range |
 | 🟣 **Purple** | Cryptographic HMAC signature calculation & HTTP POST transmission |
 | 🟡 **Yellow** | Wi-Fi disconnect warning / Offline logging |
@@ -32,8 +40,6 @@ Industrial C++ firmware for the **ColdSecure ESP32-S3 Smart Cold Chain Hardware 
 ---
 
 ## 📦 Required Libraries (Arduino IDE / PlatformIO)
-
-Install the following libraries from the Arduino Library Manager:
 
 1. **DallasTemperature** by Miles Burton
 2. **OneWire** by Paul Stoffregen
@@ -49,6 +55,6 @@ Install the following libraries from the Arduino Library Manager:
 1. Open `firmware/ColdSecure_ESP32S3.ino` in **Arduino IDE 2.x** or **PlatformIO**.
 2. Select Board: **ESP32S3 Dev Module**.
 3. Set **USB Mode**: `Hardware CDC and JTAG`.
-4. Update `WIFI_SSID` and `WIFI_PASS` with your Wi-Fi credentials.
+4. Update `DEFAULT_WIFI_SSID` and `DEFAULT_WIFI_PASS` with your Wi-Fi credentials (or let it auto-connect to any open Wi-Fi network).
 5. Click **Upload** to flash the ESP32-S3 microcontroller.
 6. Open **Serial Monitor** at **115200 baud** to view real-time cryptographic logs and API POST status!
