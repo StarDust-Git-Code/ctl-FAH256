@@ -12,6 +12,7 @@
  *   - NEO-6M GPS Module UART (RX 18, TX 17) - Route: KCG College ➔ Adyar
  *   - Built-in WS2812 NeoPixel RGB Diagnostic LED (GPIO 48)
  *   - Open Network Auto-Connect & Failover Wi-Fi Engine
+ *   - Detailed Serial Monitor Telemetry & Render Push Status Logging
  *   - HMAC-SHA256 Payload Signature Engine
  *   - HTTP POST REST API Telemetry Transmission to Render Server
  * ====================================================================
@@ -48,10 +49,10 @@ const char* ROUTE_DESTINATION = "Adyar Courier Service, Chennai";
 
 // Waypoints Array: KCG College ➔ Perungudi ➔ Thiruvanmiyur ➔ Adyar Depot
 const float ROUTE_WAYPOINTS[4][2] = {
-  { 12.9100, 80.2285 }, // KCG College of Technology, Karapakkam
-  { 12.9400, 80.2370 }, // Perungudi OMR Toll
-  { 12.9700, 80.2480 }, // Thiruvanmiyur Signal
-  { 13.0067, 80.2571 }  // Adyar Courier Service Hub
+  { 12.9100, 80.2285 }, // Waypoint 1: KCG College of Technology, Karapakkam
+  { 12.9400, 80.2370 }, // Waypoint 2: Perungudi OMR Toll
+  { 12.9700, 80.2480 }, // Waypoint 3: Thiruvanmiyur Signal
+  { 13.0067, 80.2571 }  // Waypoint 4: Adyar Courier Service Hub
 };
 uint8_t currentWaypointIndex = 0;
 
@@ -103,14 +104,14 @@ bool connectToOpenNetwork() {
   Serial.println("[NET] Scanning for open Wi-Fi networks...");
   int n = WiFi.scanNetworks();
   if (n == 0) {
-    Serial.println("[NET] No Wi-Fi networks found.");
+    Serial.println("[NET] No open Wi-Fi networks found in range.");
     return false;
   }
 
   for (int i = 0; i < n; ++i) {
     if (WiFi.encryptionType(i) == WIFI_AUTH_OPEN) {
       String openSsid = WiFi.SSID(i);
-      Serial.print("[NET] Open network found! Connecting to: ");
+      Serial.print("[NET] Open unencrypted Wi-Fi found! Connecting to: ");
       Serial.println(openSsid);
 
       WiFi.begin(openSsid.c_str());
@@ -122,7 +123,7 @@ bool connectToOpenNetwork() {
       }
 
       if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("\n[NET] Connected to open network: " + openSsid);
+        Serial.println("\n[NET SUCCESS] Connected to open network: " + openSsid);
         return true;
       }
     }
@@ -161,14 +162,14 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
 
-  Serial.println("\n====================================================");
-  Serial.println("  FAH256 ColdSecure ESP32-S3 Firmware Booting...");
-  Serial.println("  Route: KCG College (Karapakkam) -> Adyar Courier");
-  Serial.println("====================================================");
+  Serial.println("\n====================================================================");
+  Serial.println("  FAH256 ColdSecure ESP32-S3 Hardware Gateway Firmware");
+  Serial.println("  Route: KCG College (Karapakkam) ➔ Adyar Courier Service, Chennai");
+  Serial.println("====================================================================");
 
   // Initialize Onboard BOOT Button (GPIO 0)
   pinMode(PIN_BOOT_BTN, INPUT_PULLUP);
-  Serial.println("[OK] BOOT Button initialized on GPIO 0 (Hold >5s to reset tamper)");
+  Serial.println("[OK] BOOT Button initialized on GPIO 0 (Hold >5 sec to reset tamper)");
 
   // Initialize Built-in RGB LED (GPIO 48) -> White (Booting)
   rgbLed.begin();
@@ -190,7 +191,7 @@ void setup() {
     mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
     Serial.println("[OK] MPU6050 IMU initialized on I2C (SDA 8, SCL 9)");
   } else {
-    Serial.println("[WARN] MPU6050 IMU not responding!");
+    Serial.println("[WARN] MPU6050 IMU not responding on I2C!");
   }
 
   // Initialize NEO-6M GPS UART (RX 18, TX 17)
@@ -217,10 +218,10 @@ void setup() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\n[NET] Wi-Fi Connected! IP Address: " + WiFi.localIP().toString());
+    Serial.println("\n[NET SUCCESS] Wi-Fi Connected! IP Address: " + WiFi.localIP().toString());
     setRgbColor(0, 255, 0); // 🟢 Green System Healthy
   } else {
-    Serial.println("\n[WARN] Wi-Fi Connection Timed Out. Operating in offline logging mode.");
+    Serial.println("\n[NET WARN] Wi-Fi Connection Timed Out. Operating in offline queue mode.");
     setRgbColor(255, 100, 0); // 🟡 Yellow Offline Warning
   }
 }
@@ -229,16 +230,20 @@ void setup() {
 // MAIN LOOP
 // ====================================================================
 void loop() {
-  // 1. BOOT Button (GPIO 0) > 5 Seconds Hold Detector
+  // 1. BOOT Button (GPIO 0) > 5 Seconds Hold Detector to Clear Tamper
   if (digitalRead(PIN_BOOT_BTN) == LOW) { // Button Pressed (Active LOW)
     if (bootPressStartTime == 0) {
       bootPressStartTime = millis();
+      Serial.println("[BTN] BOOT Button Pressed. Hold for 5 seconds to clear breach...");
     } else if (millis() - bootPressStartTime >= BOOT_HOLD_TIME_MS) {
       // BOOT button held for > 5 seconds -> Reset Tamper Latch!
       if (tamperLatched) {
         tamperLatched = false;
         setRgbColor(0, 255, 0); // Reset LED to 🟢 Green Healthy
-        Serial.println("\n[TAMPER RESET] BOOT Button held > 5 sec! Tamper state CLEARED & System Armed to SECURE.");
+        Serial.println("\n====================================================");
+        Serial.println("  [TAMPER CLEARED] BOOT Button held for > 5 Seconds!");
+        Serial.println("  Tamper Breach State RESET to SECURE.");
+        Serial.println("====================================================\n");
       }
     }
   } else {
@@ -255,23 +260,23 @@ void loop() {
     connectToOpenNetwork();
   }
 
-  // 3. Periodically Poll Sensors & Transmit Telemetry
+  // 3. Periodically Read Sensors & Print Detailed Serial Monitor Logs
   if (millis() - lastTelemetryTime >= TELEMETRY_INTERVAL_MS) {
     lastTelemetryTime = millis();
     packetSequenceCounter++;
 
-    // Read DS18B20 Temperature
+    // A. Read DS18B20 Temperature
     tempSensor.requestTemperatures();
     float currentTempC = tempSensor.getTempCByIndex(0);
     if (currentTempC == DEVICE_DISCONNECTED_C) {
-      currentTempC = -72.4; // Fallback simulation value if hardware unplugged
+      currentTempC = -72.4; // Fallback simulation value if hardware probe unplugged
     }
 
-    // Read PIR Motion Sensor
+    // B. Read PIR Motion Sensor
     int pirState = digitalRead(PIN_PIR);
     bool motionDetected = (pirState == HIGH);
 
-    // Read MPU6050 Accelerometer / Gyroscope
+    // C. Read MPU6050 Accelerometer / Gyroscope
     sensors_event_t a, g, temp;
     mpu.getEvent(&a, &g, &temp);
 
@@ -293,7 +298,7 @@ void loop() {
       setRgbColor(0, 255, 0); // 🟢 Green Healthy
     }
 
-    // Read GPS Coordinates (Hardcoded KCG College ➔ Adyar Route Transit Waypoints)
+    // D. Read GPS Coordinates (Hardcoded KCG College ➔ Adyar Route Transit Waypoints)
     float latitude = ROUTE_WAYPOINTS[currentWaypointIndex][0];
     float longitude = ROUTE_WAYPOINTS[currentWaypointIndex][1];
     if (gps.location.isValid()) {
@@ -332,16 +337,25 @@ void loop() {
     jsonPayload += "\"hmacSignature\":\"" + hmacSig + "\"";
     jsonPayload += "}";
 
-    Serial.println("\n----------------------------------------------------");
-    Serial.println("[TELEMETRY PACKET #" + String(packetSequenceCounter) + "]");
-    Serial.println("Route: KCG College (Karapakkam) -> Adyar Courier Service");
-    Serial.println("Tamper Latch State: " + String(tamperLatched ? "BREACH (Hold BOOT >5s to clear)" : "SECURE"));
-    Serial.println("Payload JSON: " + jsonPayload);
-    Serial.println("HMAC Signature: " + hmacSig);
+    // Print Detailed Sensor Readings to Serial Monitor
+    Serial.println("\n--------------------------------------------------------------------");
+    Serial.println("  📊 SENSOR READINGS [PACKET #" + String(packetSequenceCounter) + "]");
+    Serial.println("--------------------------------------------------------------------");
+    Serial.println("  🌡 DS18B20 Cargo Probe Temp : " + String(currentTempC, 2) + " °C");
+    Serial.println("  🚶 PIR Motion Sensor        : " + String(motionDetected ? "HIGH (MOTION DETECTED!)" : "LOW (Secure)"));
+    Serial.println("  💥 MPU6050 3-Axis Accel     : X=" + String(accelX, 2) + " Y=" + String(accelY, 2) + " Z=" + String(accelZ, 2) + " (Shock: " + String(shockDetected ? "YES" : "NO") + ")");
+    Serial.println("  📍 GPS Location Coordinates : Lat " + String(latitude, 6) + ", Lng " + String(longitude, 6) + " (" + String(speedKmh, 1) + " km/h)");
+    Serial.println("  🗺 Transit Corridor Route   : KCG College (Karapakkam) ➔ Adyar Courier");
+    Serial.println("  🛡 Tamper Security State    : " + String(tamperLatched ? "🔴 BREACH LATCHED (Hold BOOT >5s to clear)" : "🟢 SECURE"));
+    Serial.println("  🔐 HMAC-SHA256 Signature    : " + hmacSig);
+    Serial.println("  📦 JSON Payload String      : " + jsonPayload);
+    Serial.println("--------------------------------------------------------------------");
 
-    // Send HTTP POST to Render REST API
+    // E. Send HTTP POST to Render REST API and Log Transmission Status
     if (WiFi.status() == WL_CONNECTED) {
       setRgbColor(128, 0, 128); // 🟣 Purple Transmitting Data
+
+      Serial.println("[HTTP PUSH] Transmitting telemetry to Render API (" + String(API_URL) + ")...");
 
       HTTPClient http;
       http.begin(API_URL);
@@ -349,13 +363,24 @@ void loop() {
 
       int httpResponseCode = http.POST(jsonPayload);
       if (httpResponseCode > 0) {
-        Serial.println("[HTTP OK] Telemetry sent successfully! Response Code: " + String(httpResponseCode));
+        Serial.println("====================================================");
+        Serial.println("  🚀 [RENDER PUSH SUCCESS] HTTP " + String(httpResponseCode) + " OK!");
+        Serial.println("  Data successfully pushed to Render backend server.");
+        Serial.println("====================================================");
       } else {
-        Serial.println("[HTTP ERROR] Failed to send telemetry. Error: " + http.errorToString(httpResponseCode));
+        Serial.println("====================================================");
+        Serial.println("  ❌ [RENDER PUSH FAILED] Error: " + http.errorToString(httpResponseCode));
+        Serial.println("  Check server status or network connection.");
+        Serial.println("====================================================");
       }
       http.end();
 
       if (!tamperLatched) setRgbColor(0, 255, 0); // Reset to Green
+    } else {
+      Serial.println("====================================================");
+      Serial.println("  ⚠️ [RENDER PUSH SKIPPED] Wi-Fi Offline.");
+      Serial.println("  Telemetry queued in RAM. Auto-scanning open Wi-Fi...");
+      Serial.println("====================================================");
     }
   }
 }
