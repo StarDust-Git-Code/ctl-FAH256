@@ -15,9 +15,9 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
     if (!mapRef.current) return;
     if (leafletInstance.current) return;
 
-    // Default center set over Chennai OMR Corridor (KCG College to Adyar)
+    // Hardcode map center directly over Adyar / KCG College Chennai Transit Corridor
     const map = L.map(mapRef.current, {
-      center: [12.9550, 80.2450],
+      center: [13.0067, 80.2571], // Adyar, Chennai
       zoom: 12,
       zoomControl: false,
     });
@@ -85,6 +85,23 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
       geofencesRef.current.push(gfAdyar);
     }
 
+    // Always draw active transit route line (KCG College ➔ Perungudi ➔ Thiruvanmiyur ➔ Adyar)
+    const polyCoords = [
+      [12.9100, 80.2285], // KCG College
+      [12.9400, 80.2370], // Perungudi Toll
+      [12.9700, 80.2480], // Thiruvanmiyur
+      [13.0067, 80.2571]  // Adyar Courier
+    ];
+
+    const isAlert = activeShipments.some(s => s.status === 'CRITICAL_ALERT');
+    const poly = L.polyline(polyCoords, {
+      color: isAlert ? '#ef4444' : '#3b82f6',
+      weight: 4,
+      opacity: 0.9,
+      dashArray: '8, 8',
+    }).bindTooltip("Adyar Courier Transit Corridor (KCG ➔ Adyar)", { permanent: false }).addTo(map);
+    polylinesRef.current.push(poly);
+
     // Combine shipments and fleet items for marker rendering
     const displayLocations = [];
 
@@ -94,22 +111,6 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
       const lng = shp.location?.lng || 80.2285;
 
       displayLocations.push([lat, lng]);
-
-      // Draw active transit route line (KCG College ➔ Perungudi ➔ Thiruvanmiyur ➔ Adyar)
-      const polyCoords = [
-        [12.9100, 80.2285], // KCG College
-        [12.9400, 80.2370], // Perungudi Toll
-        [12.9700, 80.2480], // Thiruvanmiyur
-        [13.0067, 80.2571]  // Adyar Courier
-      ];
-
-      const poly = L.polyline(polyCoords, {
-        color: isCritical ? '#ef4444' : '#3b82f6',
-        weight: 4,
-        opacity: 0.9,
-        dashArray: '8, 8',
-      }).bindTooltip(`Transit Route: ${shp.cargoName}`, { permanent: false }).addTo(map);
-      polylinesRef.current.push(poly);
 
       const customIcon = L.divIcon({
         className: 'custom-vehicle-marker',
@@ -153,12 +154,12 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
       }
     });
 
-    // Auto-fit map bounds over active locations
+    // Auto-fit map bounds over active locations or center on Adyar, Chennai
     if (displayLocations.length > 0) {
       const bounds = L.latLngBounds(displayLocations);
       map.fitBounds(bounds.pad(0.3));
     } else {
-      map.setView([12.9550, 80.2450], 12);
+      map.setView([13.0067, 80.2571], 12);
     }
   }, [fleet, shipments, selectedShipmentId, showGeofences, isDarkMode]);
 
@@ -188,7 +189,7 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
           <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
             isDarkMode ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
           }`}>
-            ● CHENNAI OMR CORRIDOR LIVE
+            ● ADYAR CHENNAI LIVE
           </span>
         </div>
 
