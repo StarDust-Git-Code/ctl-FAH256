@@ -8,7 +8,8 @@ export default function DashboardView({ shipments, alerts, fleet, selectedShipme
   const cardBg = isDarkMode ? 'bg-slate-900/90 border-slate-800 text-slate-100 shadow-xl' : 'bg-white border-slate-200 text-slate-900 shadow-xs';
   const subText = isDarkMode ? 'text-slate-400' : 'text-slate-500';
 
-  const activeShipmentsCount = shipments.filter(s => s.status === 'IN_TRANSIT').length;
+  const activeShipment = selectedShipment || (shipments.length > 0 ? shipments[0] : null);
+  const activeShipmentsCount = shipments.filter(s => s.status === 'IN_TRANSIT' || s.status === 'CRITICAL_ALERT').length;
   const activeAlertsCount = alerts.filter(a => a.status === 'ACTIVE' || a.status === 'UNDER_INVESTIGATION').length;
 
   return (
@@ -21,23 +22,35 @@ export default function DashboardView({ shipments, alerts, fleet, selectedShipme
             <Package className="w-4 h-4 text-blue-500" />
           </div>
           <div className="mt-2 text-2xl font-black font-mono">
-            {activeShipmentsCount}
+            {shipments.length}
           </div>
           <div className="text-[10px] text-blue-400 mt-1 flex items-center gap-1 font-semibold">
-            <Activity className="w-3 h-3" /> Live GPS Monitored
+            <Activity className="w-3 h-3" /> Live Telemetry Streaming
           </div>
         </div>
 
         <div className={`${cardBg} rounded-xl p-3.5 flex flex-col justify-between transition`}>
           <div className={`flex items-center justify-between ${subText}`}>
-            <span className="text-xs font-semibold">Avg Temp</span>
+            <span className="text-xs font-semibold">Live Temp</span>
             <Thermometer className="w-4 h-4 text-blue-500" />
           </div>
-          <div className="mt-2 text-2xl font-black text-blue-400 font-mono">
-            {selectedShipment ? `${selectedShipment.currentTemp}°C` : '--'}
+          <div className={`mt-2 text-2xl font-black font-mono ${
+            activeShipment && (activeShipment.currentTemp > activeShipment.maxSafeTemp || activeShipment.currentTemp < activeShipment.minSafeTemp)
+              ? 'text-red-400 animate-pulse'
+              : 'text-blue-400'
+          }`}>
+            {activeShipment ? `${activeShipment.currentTemp}°C` : '--'}
           </div>
-          <div className="text-[10px] text-emerald-400 mt-1 font-semibold">
-            {selectedShipment ? '✓ Within Safe Bounds' : 'No Active Payload'}
+          <div className={`text-[10px] mt-1 font-bold ${
+            activeShipment && (activeShipment.currentTemp > activeShipment.maxSafeTemp || activeShipment.currentTemp < activeShipment.minSafeTemp)
+              ? 'text-red-400'
+              : 'text-emerald-400'
+          }`}>
+            {activeShipment
+              ? (activeShipment.currentTemp > activeShipment.maxSafeTemp || activeShipment.currentTemp < activeShipment.minSafeTemp
+                  ? '⚠ Excursion Warning'
+                  : '✓ Safe Bounds')
+              : 'No Active Telemetry'}
           </div>
         </div>
 
@@ -47,10 +60,10 @@ export default function DashboardView({ shipments, alerts, fleet, selectedShipme
             <Truck className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-700'}`} />
           </div>
           <div className="mt-2 text-2xl font-black font-mono">
-            {fleet.length}
+            {fleet.length > 0 ? fleet.length : shipments.length}
           </div>
           <div className={`text-[10px] ${subText} mt-1 font-medium`}>
-            {fleet.length} Reefer Units Active
+            {fleet.length > 0 ? fleet.length : shipments.length} Reefer Gateway Units
           </div>
         </div>
 
@@ -103,15 +116,15 @@ export default function DashboardView({ shipments, alerts, fleet, selectedShipme
       {/* Main Grid: 3D Twin + Command Map */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-6">
-          <DigitalTwin3D shipment={selectedShipment} isDarkMode={isDarkMode} />
+          <DigitalTwin3D shipment={activeShipment} isDarkMode={isDarkMode} />
         </div>
         <div className="lg:col-span-6">
-          <LiveMap fleet={fleet} shipments={shipments} selectedShipmentId={selectedShipment?.id} isDarkMode={isDarkMode} />
+          <LiveMap fleet={fleet} shipments={shipments} selectedShipmentId={activeShipment?.id} isDarkMode={isDarkMode} />
         </div>
       </div>
 
       {/* Cryptographic Integrity Widget */}
-      <IntegrityVerifier shipmentId={selectedShipment?.id} isDarkMode={isDarkMode} />
+      <IntegrityVerifier shipmentId={activeShipment?.id} isDarkMode={isDarkMode} />
 
       {/* Recent Alerts & Active Shipments Snapshot Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -163,7 +176,7 @@ export default function DashboardView({ shipments, alerts, fleet, selectedShipme
                     isDarkMode ? 'border-slate-800' : 'border-slate-200/60'
                   }`}>
                     <span>Shipment: {alert.shipmentId}</span>
-                    <span>Driver: {alert.driver}</span>
+                    <span>Driver: {alert.driver || 'Gateway'}</span>
                   </div>
                 </div>
               ))
@@ -192,7 +205,7 @@ export default function DashboardView({ shipments, alerts, fleet, selectedShipme
                 <Package className="w-8 h-8 text-slate-500 mx-auto" />
                 <div>
                   <p className="font-bold text-slate-300">No Active Shipments in REST API</p>
-                  <p className="text-slate-400 text-[11px]">Dispatch your first shipment or load demo data.</p>
+                  <p className="text-slate-400 text-[11px]">Dispatch your first shipment or connect your ESP32 hardware.</p>
                 </div>
                 <button
                   onClick={() => onNavigate('SHIPMENTS')}
@@ -207,7 +220,7 @@ export default function DashboardView({ shipments, alerts, fleet, selectedShipme
                   key={shp.id}
                   onClick={() => onSelectShipment(shp)}
                   className={`p-3 rounded-lg border text-xs cursor-pointer transition ${
-                    selectedShipment?.id === shp.id
+                    activeShipment?.id === shp.id
                       ? isDarkMode
                         ? 'bg-blue-950/80 border-blue-600 text-white shadow-inner'
                         : 'bg-blue-50/80 border-blue-400 text-slate-900 shadow-xs'

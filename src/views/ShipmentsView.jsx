@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, Search, QrCode, Thermometer, Battery, Signal, ShieldCheck, AlertTriangle, Eye, CheckCircle2, User, Clock, Plus, Trash2, RefreshCw } from 'lucide-react';
+import { Package, Search, QrCode, Thermometer, Battery, Signal, ShieldCheck, AlertTriangle, Eye, CheckCircle2, User, Clock, Plus, Trash2, RefreshCw, Edit3 } from 'lucide-react';
 import { apiService } from '../services/api';
 
 export default function ShipmentsView({ shipments, onSelectShipment, selectedShipment, isDarkMode = true, onRefreshData }) {
@@ -7,6 +7,12 @@ export default function ShipmentsView({ shipments, onSelectShipment, selectedShi
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModalShipment, setActiveModalShipment] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editModalShipment, setEditModalShipment] = useState(null);
+
+  // Edit Threshold State
+  const [editMinTemp, setEditMinTemp] = useState('-80.0');
+  const [editMaxTemp, setEditMaxTemp] = useState('-60.0');
+  const [isEditingThreshold, setIsEditingThreshold] = useState(false);
 
   // New Shipment Form State
   const [cargoName, setCargoName] = useState('');
@@ -63,6 +69,24 @@ export default function ShipmentsView({ shipments, onSelectShipment, selectedShi
     }
   };
 
+  const handleEditThresholdSubmit = async (e) => {
+    e.preventDefault();
+    if (!editModalShipment) return;
+    try {
+      setIsEditingThreshold(true);
+      await apiService.updateShipment(editModalShipment.id, {
+        minSafeTemp: Number(editMinTemp),
+        maxSafeTemp: Number(editMaxTemp),
+      });
+      setEditModalShipment(null);
+      if (onRefreshData) onRefreshData();
+    } catch (err) {
+      console.error('Failed to update shipment safe temp bounds:', err);
+    } finally {
+      setIsEditingThreshold(false);
+    }
+  };
+
   const handleDeleteShipment = async (id) => {
     if (confirm(`Delete shipment ${id} from Express API store?`)) {
       try {
@@ -86,7 +110,7 @@ export default function ShipmentsView({ shipments, onSelectShipment, selectedShi
             COLD CHAIN CARGO & SHIPMENTS CONTROL
           </h2>
           <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            Real-Time Payload Telemetry • Safe Temp Ranges • Dynamic REST API Integration
+            Real-Time Payload Telemetry • Safe Temp Threshold Configuration • Dynamic REST API
           </p>
         </div>
 
@@ -194,7 +218,7 @@ export default function ShipmentsView({ shipments, onSelectShipment, selectedShi
                         </span>
                       </td>
                       <td className="p-3.5 font-mono text-sm font-black">
-                        <span className={isViolation ? 'text-red-400' : 'text-blue-400'}>
+                        <span className={isViolation ? 'text-red-400 animate-pulse' : 'text-blue-400'}>
                           {shp.currentTemp}°C
                         </span>
                       </td>
@@ -217,6 +241,21 @@ export default function ShipmentsView({ shipments, onSelectShipment, selectedShi
                         </div>
                       </td>
                       <td className="p-3.5 text-right flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setEditModalShipment(shp);
+                            setEditMinTemp(shp.minSafeTemp);
+                            setEditMaxTemp(shp.maxSafeTemp);
+                          }}
+                          className={`px-2.5 py-1.5 rounded-lg border text-xs font-semibold inline-flex items-center gap-1 transition ${
+                            isDarkMode
+                              ? 'bg-amber-950/60 hover:bg-amber-900/80 text-amber-400 border-amber-800'
+                              : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200'
+                          }`}
+                          title="Edit Safe Temp Thresholds"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-amber-400" /> Edit Max Temp
+                        </button>
                         <button
                           onClick={() => {
                             onSelectShipment(shp);
@@ -246,6 +285,83 @@ export default function ShipmentsView({ shipments, onSelectShipment, selectedShi
           )}
         </div>
       </div>
+
+      {/* Edit Safe Temperature Thresholds Modal */}
+      {editModalShipment && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <form
+            onSubmit={handleEditThresholdSubmit}
+            className={`border rounded-xl p-6 max-w-md w-full shadow-2xl space-y-4 relative ${
+              isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+          >
+            <div className={`flex items-center justify-between border-b pb-3 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+              <h3 className="font-bold text-base flex items-center gap-2 text-amber-400">
+                <Thermometer className="w-5 h-5 text-amber-400" /> EDIT SAFE TEMP THRESHOLDS
+              </h3>
+              <button type="button" onClick={() => setEditModalShipment(null)} className="text-slate-400 hover:text-white font-bold text-sm">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className={`p-3 rounded-lg border font-mono ${isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                <p className="font-bold text-blue-400 text-sm">{editModalShipment.id}</p>
+                <p className="text-slate-300 font-sans mt-0.5">{editModalShipment.cargoName}</p>
+                <p className="text-slate-400 text-[10px] mt-1">Current Payload Temp: <strong className="text-blue-400">{editModalShipment.currentTemp}°C</strong></p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Min Safe Temp (°C)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    required
+                    value={editMinTemp}
+                    onChange={(e) => setEditMinTemp(e.target.value)}
+                    className={`w-full border rounded p-2.5 font-mono text-sm font-bold text-blue-400 focus:outline-none ${
+                      isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-300'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Max Safe Temp (°C)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    required
+                    value={editMaxTemp}
+                    onChange={(e) => setEditMaxTemp(e.target.value)}
+                    className={`w-full border rounded p-2.5 font-mono text-sm font-bold text-amber-400 focus:outline-none ${
+                      isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-300'
+                    }`}
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-400 italic">
+                Updating the maximum temperature threshold will automatically adjust excursion alert logic for this cargo order across all dashboards and devices.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditModalShipment(null)}
+                className="px-4 py-2 border rounded-lg text-xs font-semibold text-slate-400 border-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isEditingThreshold}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-lg shadow-md"
+              >
+                {isEditingThreshold ? 'Updating API...' : 'Save Temperature Thresholds'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Create New Shipment Modal */}
       {showCreateModal && (
@@ -310,7 +426,7 @@ export default function ShipmentsView({ shipments, onSelectShipment, selectedShi
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Pune Central Lab"
+                    placeholder="e.g. KCG College of Technology, Karapakkam"
                     value={source}
                     onChange={(e) => setSource(e.target.value)}
                     className={`w-full border rounded p-2 focus:outline-none ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-300'}`}
@@ -322,7 +438,7 @@ export default function ShipmentsView({ shipments, onSelectShipment, selectedShi
                   <input
                     type="text"
                     required
-                    placeholder="e.g. AIIMS New Delhi"
+                    placeholder="e.g. Adyar Courier Service, Chennai"
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
                     className={`w-full border rounded p-2 focus:outline-none ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-300'}`}
