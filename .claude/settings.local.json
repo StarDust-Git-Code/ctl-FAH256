@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir C:\\\\Users\\\\irsha\\\\Desktop\\\\projects\\\\CTL\\\\pitch-deck *)"
+    ]
+  }
+}

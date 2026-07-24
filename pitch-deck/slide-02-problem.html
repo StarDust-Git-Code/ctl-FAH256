@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920">
+  <title>Slide 2 — Problem Statement</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="slide flex-col">
+    <header class="slide-header">
+      <h2 class="h2">The Problem</h2>
+      <div class="divider-accent"></div>
+      <p class="body text-secondary">Why cold-chain logistics is broken — and why it matters</p>
+    </header>
+
+    <main class="flex-1 flex flex-col" style="gap: var(--space-4);">
+      <div class="problem-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); flex: 1;">
+        <article class="problem-card">
+          <div class="problem-icon danger">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <h3 class="h3">Temperature Excursions</h3>
+          <p class="body text-secondary" style="margin-top: var(--space-2);">WHO estimates <strong>50% of vaccines</strong> are wasted globally due to temperature control failures. A single excursion can render an entire shipment unsafe — with no verifiable proof of when or where it happened.</p>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-icon warm">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="8" width="18" height="11" rx="2"/>
+              <path d="M7 12h10M7 16h10M7 8h10"/>
+            </svg>
+          </div>
+          <h3 class="h3">Falsified Records</h3>
+          <p class="body text-secondary" style="margin-top: var(--space-2);">Manual paper logs and disconnected digital systems allow temperature records to be altered, backdated, or fabricated — with no cryptographic proof of authenticity.</p>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-icon info">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <h3 class="h3">Tampering & Theft</h3>
+          <p class="body text-secondary" style="margin-top: var(--space-2);">Cargo boxes can be opened, contents swapped, or devices disabled during transit. Without tamper-evident sensing, there's no real-time alert — and no forensic trail after the fact.</p>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-icon primary">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3 class="h3">Broken Chain of Custody</h3>
+          <p class="body text-secondary" style="margin-top: var(--space-2);">Driver handoffs are informal — verbal, unrecorded, or paper-signed. When incidents occur, no one knows who had custody, where the transfer happened, or whether protocols were followed.</p>
+        </article>
+      </div>
+
+      <div class="impact-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-top: var(--space-3);">
+        <div class="stat-card">
+          <div class="stat-value" style="font-size: var(--text-h2);">$35B+</div>
+          <div class="stat-label text-secondary">Annual cold-chain losses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="font-size: var(--text-h2);">50%</div>
+          <div class="stat-label text-secondary">Vaccine wastage (WHO)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="font-size: var(--text-h2);">1 in 4</div>
+          <div class="stat-label text-secondary">Shipments have excursions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="font-size: var(--text-h2);">0%</div>
+          <div class="stat-label text-secondary">Cryptographic accountability</div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="slide-footer">
+      <span class="text-muted">The problem isn't just monitoring — it's <strong class="text-primary">trust</strong>.</span>
+    </footer>
+  </div>
+</body>
+</html>

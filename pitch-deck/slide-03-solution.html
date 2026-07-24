@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920">
+  <title>Slide 3 — Proposed Solution</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="slide flex-col">
+    <header class="slide-header">
+      <h2 class="h2">Proposed Solution</h2>
+      <div class="divider-accent"></div>
+      <p class="body text-secondary">End-to-end cold-chain integrity without blockchain complexity</p>
+    </header>
+
+    <main class="flex-1 flex flex-col" style="gap: var(--space-5);">
+      <div class="flex-1 flex flex-col flex-center" style="text-align: center;">
+        <h3 class="h1 animate-fade-in-up">ColdChain Guardian Platform</h3>
+        <p class="body-lg text-secondary animate-fade-in-up delay-1" style="max-width: 700px; margin-top: var(--space-3);">
+          A lightweight, demo-ready architecture delivering <strong>real-time monitoring</strong>, <strong>cryptographic data integrity</strong>, and <strong>digital chain-of-custody</strong> — all without blockchain overhead.
+        </p>
+
+        <div class="flex gap-3 flex-wrap justify-center animate-fade-in-up delay-2" style="margin-top: var(--space-5);">
+          <span class="badge badge-success">✓ Real-time temperature & tamper sensing</span>
+          <span class="badge badge-success">✓ HMAC-SHA256 packet authentication</span>
+          <span class="badge badge-success">✓ SHA-256 hash chain integrity</span>
+          <span class="badge badge-success">✓ EID-based replay protection</span>
+          <span class="badge badge-success">✓ QR-based driver handoffs</span>
+          <span class="badge badge-success">✓ Live dashboard with integrity status</span>
+        </div>
+      </div>
+
+      <div class="flex gap-4" style="flex: 1;">
+        <article class="card flex-1 flex flex-col flex-center" style="text-align: center; min-height: 300px;">
+          <div class="icon-wrap animate-fade-in-up" style="margin-bottom: var(--space-3);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <h3 class="h3 animate-fade-in-up delay-1">Hardware</h3>
+          <p class="body text-secondary animate-fade-in-up delay-2">ESP32 + DS18B20 + MPU6050 inside cargo box. Continuous monitoring, signed packets, local buffering.</p>
+        </article>
+
+        <article class="card flex-1 flex flex-col flex-center" style="text-align: center; min-height: 300px;">
+          <div class="icon-wrap icon-wrap-cyan animate-fade-in-up" style="margin-bottom: var(--space-3);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
+            </svg>
+          </div>
+          <h3 class="h3 animate-fade-in-up delay-1">Backend</h3>
+          <p class="body text-secondary animate-fade-in-up delay-2">Node.js API verifies HMAC, validates hash chain, dedups EIDs, stores verified data. REST endpoints for all consumers.</p>
+        </article>
+
+        <article class="card flex-1 flex flex-col flex-center" style="text-align: center; min-height: 300px;">
+          <div class="icon-wrap icon-wrap-warm animate-fade-in-up" style="margin-bottom: var(--space-3);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2"/>
+              <path d="M12 18h.01"/>
+            </svg>
+          </div>
+          <h3 class="h3 animate-fade-in-up delay-1">Apps & Dashboard</h3>
+          <p class="body text-secondary animate-fade-in-up delay-2">Cargo Services App for drivers (QR handoffs), React dashboard for monitors. Live tracking, alerts, custody timeline.</p>
+        </article>
+      </div>
+
+      <div class="card-glass animate-fade-in-up delay-3" style="padding: var(--space-4); text-align: center;">
+        <p class="body text-secondary">No blockchain. No IPFS. No Polygon. <strong class="text-primary">Just cryptography that works.</strong></p>
+      </div>
+    </main>
+
+    <footer class="slide-footer">
+      <span class="text-muted">Lightweight • Verifiable • Demo-Ready</span>
+    </footer>
+  </div>
+</body>
+</html>

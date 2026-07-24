@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920">
+  <title>Slide 12 — Future Scope & Closing</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="slide flex-col">
+    <header class="slide-header">
+      <h2 class="h2">Future Scope — What's Next</h2>
+      <div class="divider-accent"></div>
+      <p class="body text-secondary">Roadmap from hackathon demo to production platform</p>
+    </header>
+
+    <main class="flex-1" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-content: start; padding-top: var(--space-2);">
+      <!-- Left: Roadmap Phases -->
+      <article class="card" style="grid-row: span 2; display: flex; flex-direction: column;">
+        <h3 class="h3" style="margin-bottom: var(--space-4);">Development Roadmap</h3>
+        <div class="roadmap flex-1 flex flex-col gap-4" style="flex: 1;">
+          <!-- Phase 1: Now -->
+          <div class="roadmap-phase animate-fade-in-up" style="position: relative; padding-left: var(--space-5);">
+            <div class="phase-marker" style="position: absolute; left: -6px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--grad-primary); box-shadow: var(--shadow-glow); border: 3px solid var(--bg-primary);"></div>
+            <div class="phase-content">
+              <div class="flex items-center gap-2" style="margin-bottom: var(--space-2);">
+                <span class="badge badge-success">PHASE 1</span>
+                <span class="caption text-muted">Hackathon Demo</span>
+              </div>
+              <h4 class="h3" style="font-size: var(--text-body-lg);">Core Platform (Complete)</h4>
+              <p class="body text-secondary" style="margin-top: var(--space-1);">ESP32 firmware, Node.js API, PostgreSQL, React dashboard, Cargo app, QR handoffs. End-to-end verified integrity.</p>
+              <div class="flex gap-2 flex-wrap" style="margin-top: var(--space-3);">
+                <span class="badge badge-success">✓ Hardware prototype</span>
+                <span class="badge badge-success">✓ API & DB</span>
+                <span class="badge badge-success">✓ Dashboard</span>
+                <span class="badge badge-success">✓ Driver app</span>
+                <span class="badge badge-success">✓ Security audit</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phase 2: 3 Months -->
+          <div class="roadmap-phase animate-fade-in-up delay-1" style="position: relative; padding-left: var(--space-5);">
+            <div class="phase-marker" style="position: absolute; left: -6px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--grad-warm); box-shadow: var(--shadow-glow-warm); border: 3px solid var(--bg-primary);"></div>
+            <div class="phase-line" style="position: absolute; left: 3px; top: 24px; bottom: -40px; width: 2px; background: linear-gradient(var(--accent-primary), var(--accent-warm));"></div>
+            <div class="phase-content">
+              <div class="flex items-center gap-2" style="margin-bottom: var(--space-2);">
+                <span class="badge badge-warm">PHASE 2</span>
+                <span class="caption text-muted">3 Months</span>
+              </div>
+              <h4 class="h3" style="font-size: var(--text-body-lg);">Production Hardening</h4>
+              <p class="body text-secondary" style="margin-top: var(--space-1);">Multi-tenant SaaS, role-based access, OTA firmware updates, automated provisioning, compliance certifications (GDP, ISO 13485).</p>
+              <div class="flex gap-2 flex-wrap" style="margin-top: var(--space-3);">
+                <span class="badge badge-warm">○ Multi-tenancy</span>
+                <span class="badge badge-warm">○ RBAC</span>
+                <span class="badge badge-warm">○ OTA updates</span>
+                <span class="badge badge-warm">○ GDP/ISO</span>
+                <span class="badge badge-warm">○ Pilot customers</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phase 3: 6 Months -->
+          <div class="roadmap-phase animate-fade-in-up delay-2" style="position: relative; padding-left: var(--space-5);">
+            <div class="phase-marker" style="position: absolute; left: -6px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-secondary); box-shadow: 0 0 20px rgba(0,180,216,0.4); border: 3px solid var(--bg-primary);"></div>
+            <div class="phase-line" style="position: absolute; left: 3px; top: 24px; bottom: -40px; width: 2px; background: linear-gradient(var(--accent-warm), var(--accent-secondary));"></div>
+            <div class="phase-content">
+              <div class="flex items-center gap-2" style="margin-bottom: var(--space-2);">
+                <span class="badge badge-info">PHASE 3</span>
+                <span class="caption text-muted">6 Months</span>
+              </div>
+              <h4 class="h3" style="font-size: var(--text-body-lg);">Intelligence & Analytics</h4>
+              <p class="body text-secondary" style="margin-top: var(--space-1);">ML-based excursion prediction, route optimization, anomaly detection, fleet health scoring, automated compliance reports.</p>
+              <div class="flex gap-2 flex-wrap" style="margin-top: var(--space-3);">
+                <span class="badge badge-info">○ Temp prediction</span>
+                <span class="badge badge-info">○ Route optimization</span>
+                <span class="badge badge-info">○ Fleet analytics</span>
+                <span class="badge badge-info">○ Auto-reports</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phase 4: Future -->
+          <div class="roadmap-phase animate-fade-in-up delay-3" style="position: relative; padding-left: var(--space-5);">
+            <div class="phase-marker" style="position: absolute; left: -6px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #a855f7); box-shadow: 0 0 20px rgba(139,92,246,0.4); border: 3px solid var(--bg-primary);"></div>
+            <div class="phase-line" style="position: absolute; left: 3px; top: 24px; bottom: 0; width: 2px; background: linear-gradient(var(--accent-secondary), #8b5cf6);"></div>
+            <div class="phase-content">
+              <div class="flex items-center gap-2" style="margin-bottom: var(--space-2);">
+                <span class="badge" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">PHASE 4+</span>
+                <span class="caption text-muted">12+ Months</span>
+              </div>
+              <h4 class="h3" style="font-size: var(--text-body-lg);">Ecosystem & Standards</h4>
+              <p class="body text-secondary" style="margin-top: var(--space-1);">Open integrity protocol, blockchain anchoring for public auditability, interoperability with other cold-chain systems, global regulatory alignment.</p>
+              <div class="flex gap-2 flex-wrap" style="margin-top: var(--space-3);">
+                <span class="badge" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">○ Open protocol</span>
+                <span class="badge" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">○ Blockchain anchor</span>
+                <span class="badge" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">○ Interop standard</span>
+                <span class="badge" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">○ Global compliance</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Right: Future Feature Cards -->
+      <div class="flex flex-col gap-4 animate-fade-in-up">
+        <h3 class="h3">Future Capabilities</h3>
+        <div class="grid grid-cols-2 gap-3 flex-1">
+          <article class="future-card">
+            <div class="future-icon icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 20V10M12 20V4M6 20V16"/>
+              </svg>
+            </div>
+            <h4 class="future-title">Predictive ML</h4>
+            <p class="future-desc">LSTM models predict excursions 2-4h ahead using temp trend, ambient, route, door events. Proactive driver rerouting.</p>
+            <span class="future-tag">High Impact</span>
+          </article>
+
+          <article class="future-card">
+            <div class="future-icon icon-wrap icon-wrap-cyan">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <h4 class="future-title">Route Optimization</h4>
+            <p class="future-desc">Integrate traffic, weather, charging, customs delay data. Suggest optimal cold-chain routes with risk scoring.</p>
+            <span class="future-tag">Cost Saver</span>
+          </article>
+
+          <article class="future-card">
+            <div class="future-icon icon-wrap icon-wrap-warm">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <h4 class="future-title">Blockchain Anchoring (Optional)</h4>
+            <p class="future-desc">Periodic Merkle root of hash chain → public chain. Immutable public audit trail without putting all data on-chain.</p>
+            <span class="future-tag">For Auditors</span>
+          </article>
+
+          <article class="future-card">
+            <div class="future-icon icon-wrap icon-wrap-danger">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <path d="M12 9v4M12 17h.01"/>
+              </svg>
+            </div>
+            <h4 class="future-title">Advanced Tamper Forensics</h4>
+            <p class="future-desc">IMU pattern classification: drop vs tilt vs vibration vs opening. Auto-generate incident reports with evidence packages.</p>
+            <span class="future-tag">Investigation</span>
+          </article>
+
+          <article class="future-card">
+            <div class="future-icon icon-wrap" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <path d="M8 21h8M12 17v4"/>
+              </svg>
+            </div>
+            <h4 class="future-title">Multi-Modal Sensors</h4>
+            <p class="future-desc">Add humidity, light exposure, pressure, CO2, GPS spoofing detection. Comprehensive environmental integrity.</p>
+            <span class="future-tag">Pharma Grade</span>
+          </article>
+
+          <article class="future-card">
+            <div class="future-icon icon-wrap icon-wrap-cyan">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+            </div>
+            <h4 class="future-title">Federated Identity</h4>
+            <p class="future-desc">DID-based driver credentials, verifiable across orgs. Zero-trust handoffs without central directory dependency.</p>
+            <span class="future-tag">Web3-Ready</span>
+          </article>
+        </div>
+      </div>
+
+      <!-- Right Bottom: Closing Statement -->
+      <article class="card animate-fade-in-up delay-2" style="background: linear-gradient(135deg, rgba(6,214,160,0.08), rgba(0,180,216,0.08)); border-color: rgba(6,214,160,0.4);">
+        <h4 class="h3" style="margin-bottom: var(--space-2); text-align: center;">Our Vision</h4>
+        <p class="body text-secondary" style="text-align: center; margin-bottom: var(--space-3);">
+          "A world where every temperature-sensitive shipment — from pediatric vaccines to clinical trial biologics —
+          arrives with <strong class="text-primary">cryptographic proof</strong> of integrity, and every handoff has
+          <strong class="text-primary">undeniable accountability</strong>."
+        </p>
+        <div class="flex justify-center gap-3 flex-wrap">
+          <span class="badge badge-primary">Cold-Chain Integrity</span>
+          <span class="badge badge-info">Real-Time Verification</span>
+          <span class="badge badge-warm">Complete Accountability</span>
+        </div>
+      </article>
+    </main>
+
+    <footer class="slide-footer">
+      <div class="footer-brand">
+        <div class="logo">CCG</div>
+        <span>ColdChain Guardian — Secure. Verified. Accountable.</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ColdChain Guardian — Pitch Deck Viewer</title>
+  <style>
+    :root {
+      --bg: #0a0f1a;
+      --bg-card: #141c2e;
+      --fg: #f8fafc;
+      --fg-muted: #64748b;
+      --accent: #06d6a0;
+      --accent-dim: #05b88a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #06d6a0, #00b4d8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .subtitle { color: var(--fg-muted); margin-bottom: 40px; font-size: 18px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .slide-card {
+      background: var(--bg-card);
+      border: 1px solid #1a2332;
+      border-radius: 16px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .slide-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(6, 214, 160, 0.4);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4), 0 0 40px rgba(6, 214, 160, 0.15);
+    }
+    .slide-number {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .slide-title { font-size: 20px; font-weight: 600; }
+    .slide-desc { color: var(--fg-muted); font-size: 14px; line-height: 1.5; flex: 1; }
+    .slide-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.1);
+      border: 1px solid #1a2332;
+      color: #94a3b8;
+    }
+    .tag.primary { background: rgba(6, 214, 160, 0.15); border-color: rgba(6, 214, 160, 0.3); color: #06d6a0; }
+    .tag.warm { background: rgba(255, 183, 0, 0.15); border-color: rgba(255, 183, 0, 0.3); color: #ffb700; }
+    .tag.danger { background: rgba(239, 71, 111, 0.15); border-color: rgba(239, 71, 111, 0.3); color: #ef476f; }
+    .tag.info { background: rgba(0, 180, 216, 0.15); border-color: rgba(0, 180, 216, 0.3); color: #00b4d8; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h1>ColdChain Guardian</h1>
+    <p class="subtitle">Design Thinking Hackathon — Pitch Deck (9:16 FHD)</p>
+    <div class="grid">
+      <a href="slide-01-title.html" class="slide-card">
+        <span class="slide-number">Slide 01</span>
+        <h3 class="slide-title">Title & Vision</h3>
+        <p class="slide-desc">One-liner, tagline, and the problem-solution framing</p>
+        <div class="slide-tags">
+          <span class="tag primary">Hook</span>
+          <span class="tag">Overview</span>
+        </div>
+      </a>
+      <a href="slide-02-problem.html" class="slide-card">
+        <span class="slide-number">Slide 02</span>
+        <h3 class="slide-title">Problem Statement</h3>
+        <p class="slide-desc">50% vaccine wastage, falsified records, tampering, broken custody</p>
+        <div class="slide-tags">
+          <span class="tag danger">Critical</span>
+          <span class="tag">Data-Driven</span>
+        </div>
+      </a>
+      <a href="slide-03-solution.html" class="slide-card">
+        <span class="slide-number">Slide 03</span>
+        <h3 class="slide-title">Proposed Solution</h3>
+        <p class="slide-desc">Lightweight platform: real-time monitoring, crypto integrity, digital custody</p>
+        <div class="slide-tags">
+          <span class="tag primary">Core</span>
+          <span class="tag">Architecture</span>
+        </div>
+      </a>
+      <a href="slide-04-architecture.html" class="slide-card">
+        <span class="slide-number">Slide 04</span>
+        <h3 class="slide-title">System Architecture</h3>
+        <p class="slide-desc">ESP32 → Node.js → PostgreSQL → Dashboard + App + Admin</p>
+        <div class="slide-tags">
+          <span class="tag primary">Architecture</span>
+          <span class="tag">Three-Tier</span>
+        </div>
+      </a>
+      <a href="slide-05-hardware.html" class="slide-card">
+        <span class="slide-number">Slide 05</span>
+        <h3 class="slide-title">Hardware Components</h3>
+        <p class="slide-desc">ESP32-S3, DS18B20, MPU6050, ATECC608B, LTE-M, packet format</p>
+        <div class="slide-tags">
+          <span class="tag info">Hardware</span>
+          <span class="tag">Specs</span>
+        </div>
+      </a>
+      <a href="slide-06-dataflow.html" class="slide-card">
+        <span class="slide-number">Slide 06</span>
+        <h3 class="slide-title">Data Flow Deep Dive</h3>
+        <p class="slide-desc">Packet lifecycle, verification logic, attack vectors mitigated</p>
+        <div class="slide-tags">
+          <span class="tag info">Technical</span>
+          <span class="tag">Security</span>
+        </div>
+      </a>
+      <a href="slide-07-cargoapp.html" class="slide-card">
+        <span class="slide-number">Slide 07</span>
+        <h3 class="slide-title">Cargo Services App</h3>
+        <p class="slide-desc">Driver workflow, QR scanning, live tracking, tamper alerts</p>
+        <div class="slide-tags">
+          <span class="tag warm">Mobile</span>
+          <span class="tag">Driver UX</span>
+        </div>
+      </a>
+      <a href="slide-08-handoff.html" class="slide-card">
+        <span class="slide-number">Slide 08</span>
+        <h3 class="slide-title">Driver Handoff (Custody)</h3>
+        <p class="slide-desc">5-step protocol, GPS + dual signatures, timeline visualization</p>
+        <div class="slide-tags">
+          <span class="tag primary">Chain of Custody</span>
+          <span class="tag">Accountability</span>
+        </div>
+      </a>
+      <a href="slide-09-security.html" class="slide-card">
+        <span class="slide-number">Slide 09</span>
+        <h3 class="slide-title">Security Architecture</h3>
+        <p class="slide-desc">5-layer defense model, threat matrix, key management, integrity API</p>
+        <div class="slide-tags">
+          <span class="tag danger">Security</span>
+          <span class="tag primary">Cryptography</span>
+        </div>
+      </a>
+      <a href="slide-10-dashboard.html" class="slide-card">
+        <span class="slide-number">Slide 10</span>
+        <h3 class="slide-title">Dashboard Preview</h3>
+        <p class="slide-desc">Live gauges, temperature charts, alerts, custody timeline, API access</p>
+        <div class="slide-tags">
+          <span class="tag info">UI/UX</span>
+          <span class="tag">Monitoring</span>
+        </div>
+      </a>
+      <a href="slide-11-benefits.html" class="slide-card">
+        <span class="slide-number">Slide 11</span>
+        <h3 class="slide-title">Benefits & Impact</h3>
+        <p class="slide-desc">ROI calculator, stakeholder value, competitive comparison table</p>
+        <div class="slide-tags">
+          <span class="tag warm">Business</span>
+          <span class="tag primary">ROI</span>
+        </div>
+      </a>
+      <a href="slide-12-future.html" class="slide-card">
+        <span class="slide-number">Slide 12</span>
+        <h3 class="slide-title">Future Scope & Closing</h3>
+        <p class="slide-desc">4-phase roadmap, ML prediction, blockchain anchoring, open protocol</p>
+        <div class="slide-tags">
+          <span class="tag">Roadmap</span>
+          <span class="tag primary">Vision</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

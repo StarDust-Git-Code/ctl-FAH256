@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920">
+  <title>Slide 5 — Hardware Components</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="slide flex-col">
+    <header class="slide-header">
+      <h2 class="h2">Hardware Components</h2>
+      <div class="divider-accent"></div>
+      <p class="body text-secondary">ESP32-based sensor node inside every cold-chain cargo box</p>
+    </header>
+
+    <main class="flex-1" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-content: start; padding-top: var(--space-2);">
+      <!-- Left: Main Hardware Card -->
+      <article class="card hardware-main" style="grid-row: span 2; display: flex; flex-direction: column;">
+        <div class="flex items-center gap-3" style="margin-bottom: var(--space-4);">
+          <div class="icon-wrap icon-wrap-lg animate-fade-in-up">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 17h8M12 17v4M6 21h12"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="h2" style="font-size: var(--text-h3);">ESP32-S3 Sensor Node</h3>
+            <p class="body-sm text-secondary">Custom PCB • Battery-backed • IP67 rated enclosure</p>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="flex flex-col gap-3" style="flex: 1;">
+          <div class="spec-row flex items-center gap-3 animate-fade-in-up delay-1">
+            <div class="icon-wrap-sm" style="background: linear-gradient(135deg, #06d6a0, #00b4d8);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h4 class="body" style="font-weight: 600;">DS18B20 Temperature Sensor</h4>
+              <p class="caption text-secondary">±0.5°C accuracy • -55°C to +125°C range • 1-Wire interface</p>
+            </div>
+            <span class="badge badge-info">Continuous</span>
+          </div>
+
+          <div class="spec-row flex items-center gap-3 animate-fade-in-up delay-2">
+            <div class="icon-wrap-sm" style="background: linear-gradient(135deg, #ffb700, #ff9f1c);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v4l2 2"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h4 class="body" style="font-weight: 600;">MPU6050 IMU (Accel + Gyro)</h4>
+              <p class="caption text-secondary">6-axis motion tracking • Tamper/tilt/shock detection • I2C interface</p>
+            </div>
+            <span class="badge badge-warm">Event-driven</span>
+          </div>
+
+          <div class="spec-row flex items-center gap-3 animate-fade-in-up delay-3">
+            <div class="icon-wrap-sm" style="background: linear-gradient(135deg, #ef476f, #f72585);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="20" height="20" rx="2"/>
+                <path d="M12 8v8M8 12h8"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h4 class="body" style="font-weight: 600;">Secure Element (ATECC608B)</h4>
+              <p class="caption text-secondary">Hardware HMAC-SHA256 • Unique device key • Tamper-resistant storage</p>
+            </div>
+            <span class="badge badge-danger">Per-packet</span>
+          </div>
+
+          <div class="spec-row flex items-center gap-3 animate-fade-in-up delay-4">
+            <div class="icon-wrap-sm" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h4 class="body" style="font-weight: 600;">Quectel BG95 LTE-M/NB-IoT</h4>
+              <p class="caption text-secondary">Cellular connectivity • PSM/eDRX power saving • Global bands • GNSS</p>
+            </div>
+            <span class="badge badge-primary">Always-on</span>
+          </div>
+
+          <div class="spec-row flex items-center gap-3 animate-fade-in-up delay-5">
+            <div class="icon-wrap-sm" style="background: linear-gradient(135deg, #06d6a0, #00b4d8);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2"/>
+                <path d="M1 12h22M21 12v8"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h4 class="body" style="font-weight: 600;">SPI Flash (16MB) + RTC</h4>
+              <p class="caption text-secondary">Local buffer (500+ readings) • NTP sync • Survives power loss</p>
+            </div>
+            <span class="badge badge-success">Buffered</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Right Column: Specs & Data Packet -->
+      <article class="card animate-fade-in-up delay-1">
+        <h4 class="h3" style="margin-bottom: var(--space-3);">Key Specifications</h4>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="stat">
+            <div class="stat-value" style="font-size: 36px;">~48h</div>
+            <div class="stat-label">Battery (active)</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="font-size: 36px;">30s</div>
+            <div class="stat-label">Default interval</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="font-size: 36px;">500</div>
+            <div class="stat-label">Buffered readings</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="font-size: 36px;">-40°~85°C</div>
+            <div class="stat-label">Operating range</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card animate-fade-in-up delay-2">
+        <h4 class="h3" style="margin-bottom: var(--space-3);">Sensor Data Packet</h4>
+        <div class="code-block mono">
+<span class="keyword">{</span>
+  <span class="string">"eid"</span>: <span class="string">"a1b2c3d4-e5f6-7890-abcd-ef1234567890"</span>,
+  <span class="string">"ts"</span>: <span class="number">1721827200000</span>,
+  <span class="string">"temp_c"</span>: <span class="number">2.3</span>,
+  <span class="string">"tamper"</span>: <span class="keyword">false</span>,
+  <span class="string">"accel_g"</span>: {<span class="string">"x"</span>:<span class="number">0.02</span>,<span class="string">"y"</span>:<span class="number">-0.01</span>,<span class="string">"z"</span>:<span class="number">1.01</span>},
+  <span class="string">"prev_hash"</span>: <span class="string">"0x3f2e1d4c5b6a7f8e9d0c1b2a3f4e5d6c"</span>,
+  <span class="string">"hmac"</span>: <span class="string">"0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d"</span>
+<span class="keyword">}</span>
+        </div>
+      </article>
+
+      <!-- Bottom: Security Features -->
+      <article class="card animate-fade-in-up delay-3" style="grid-column: span 2;">
+        <div class="flex items-center justify-between" style="margin-bottom: var(--space-3);">
+          <h4 class="h3">On-Device Security Primitives</h4>
+          <span class="badge badge-success">Hardware-enforced</span>
+        </div>
+        <div class="grid grid-cols-4 gap-3">
+          <div class="feature-card">
+            <div class="feature-icon icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+            </div>
+            <h5 class="feature-title">HMAC-SHA256</h5>
+            <p class="feature-desc">Per-packet authentication using device-unique key in secure element</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon icon-wrap icon-wrap-cyan">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 18a5 5 0 0 0-10 0"/>
+                <path d="M12 2v9"/>
+                <path d="M4.5 10.5l1.5 1.5"/>
+                <path d="M18 10.5l-1.5 1.5"/>
+              </svg>
+            </div>
+            <h5 class="feature-title">Hash Chain</h5>
+            <p class="feature-desc">SHA-256(current || prev_hash) — any edit breaks the chain</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon icon-wrap icon-wrap-warm">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <path d="M8 21h8M12 17v4"/>
+              </svg>
+            </div>
+            <h5 class="feature-title">EID Replay Guard</h5>
+            <p class="feature-desc">UUIDv7 (time-ordered) — server deduplicates via Redis set</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon icon-wrap icon-wrap-danger">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <path d="M12 9v4M12 17h.01"/>
+              </svg>
+            </div>
+            <h5 class="feature-title">Tamper Flag</h5>
+            <p class="feature-desc">MPU6050 detects tilt/shock/opening — embedded in packet</p>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <footer class="slide-footer">
+      <span class="text-muted">Every box. Every reading. Cryptographically verifiable.</span>
+    </footer>
+  </div>
+</body>
+</html>

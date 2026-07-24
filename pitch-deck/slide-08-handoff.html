@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1920">
+  <title>Slide 8 — Driver Handoff (Chain of Custody)</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="slide flex-col">
+    <header class="slide-header">
+      <h2 class="h2">Driver Handoff — Chain of Custody</h2>
+      <div class="divider-accent"></div>
+      <p class="body text-secondary">Digital, immutable record of every cargo transfer</p>
+    </header>
+
+    <main class="flex-1" style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: var(--space-4); padding-top: var(--space-2);">
+      <!-- Left: Handoff Flow Steps -->
+      <div class="flex flex-col gap-4" style="grid-row: span 2;">
+        <h3 class="h3">The Handoff Protocol</h3>
+        <div class="flex flex-col gap-4 flex-1">
+          <article class="step animate-fade-in-up">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4 class="step-title">Outgoing Driver Scans</h4>
+              <p class="step-desc">Driver A opens Cargo Services App, selects "Handoff", scans cargo QR code. App verifies active shipment.</p>
+            </div>
+          </article>
+
+          <article class="step animate-fade-in-up delay-1">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4 class="step-title">Outgoing Confirms Release</h4>
+              <p class="step-desc">App shows current temp, tamper status, integrity. Driver A confirms "Release Custody" with biometric/PIN.</p>
+            </div>
+          </article>
+
+          <article class="step animate-fade-in-up delay-2">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4 class="step-title">Incoming Driver Scans</h4>
+              <p class="step-desc">Driver B scans same QR code. App prompts "Accept Custody". Shows live data for verification.</p>
+            </div>
+          </article>
+
+          <article class="step animate-fade-in-up delay-3">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h4 class="step-title">Incoming Confirms Acceptance</h4>
+              <p class="step-desc">Driver B confirms with biometric/PIN. GPS, timestamp, both driver IDs locked. Backend records handoff event.</p>
+            </div>
+          </article>
+        </div>
+
+        <!-- Handoff Record -->
+        <article class="card animate-fade-in-up delay-4">
+          <h4 class="h3" style="margin-bottom: var(--space-3);">Handoff Event Record</h4>
+          <div class="code-block mono">
+<span class="keyword">{</span>
+  <span class="string">"event"</span>: <span class="string">"handoff"</span>,
+  <span class="string">"shipment_id"</span>: <span class="string">"VAC-2024-0472"</span>,
+  <span class="string">"prev_driver"</span>: <span class="string">"DRV-8821"</span>,
+  <span class="string">"new_driver"</span>: <span class="string">"DRV-9034"</span>,
+  <span class="string">"gps"</span>: {<span class="string">"lat"</span>: <span class="number">25.2048</span>, <span class="string">"lng"</span>: <span class="number">55.2708</span>},
+  <span class="string">"timestamp"</span>: <span class="number">1721827200000</span>,
+  <span class="string">"temp_at_handoff_c"</span>: <span class="number">4.2</span>,
+  <span class="string">"integrity_status"</span>: <span class="string">"verified"</span>,
+  <span class="string">"signatures"</span>: {
+    <span class="string">"prev_driver_sig"</span>: <span class="string">"0xabc123..."</span>,
+    <span class="string">"new_driver_sig"</span>: <span class="string">"0xdef456..."</span>
+  }
+<span class="keyword">}</span>
+          </div>
+        </article>
+      </div>
+
+      <!-- Right: Visual Timeline -->
+      <div class="animate-fade-in-up" style="grid-column: 2;">
+        <h3 class="h3" style="margin-bottom: var(--space-3);">Custody Timeline (Dashboard View)</h3>
+        <div class="card" style="height: 100%; display: flex; flex-direction: column;">
+          <div class="timeline flex-1 flex flex-col" style="position: relative; padding-left: var(--space-5);">
+            <div class="timeline-item flex gap-3" style="position: relative; padding-bottom: var(--space-5);">
+              <div class="timeline-marker" style="position: absolute; left: -34px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--grad-primary); box-shadow: var(--shadow-glow);"></div>
+              <div class="timeline-content flex-1">
+                <div class="flex items-center gap-2" style="margin-bottom: var(--space-1);">
+                  <span class="badge badge-success">SHIPMENT CREATED</span>
+                  <span class="caption text-muted">06:00 AM</span>
+                </div>
+                <p class="body-sm text-secondary">Shipment VAC-2024-0472 initialized. QR generated. Driver DRV-8821 assigned.</p>
+              </div>
+            </div>
+
+            <div class="timeline-item flex gap-3" style="position: relative; padding-bottom: var(--space-5);">
+              <div class="timeline-marker" style="position: absolute; left: -34px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--grad-warm); box-shadow: var(--shadow-glow-warm);"></div>
+              <div class="timeline-content flex-1">
+                <div class="flex items-center gap-2" style="margin-bottom: var(--space-1);">
+                  <span class="badge badge-warm">HANDOFF 1</span>
+                  <span class="caption text-muted">10:30 AM</span>
+                </div>
+                <p class="body-sm text-secondary">DRV-8821 → DRV-9034 at Dubai Logistics Hub. Temp: 4.1°C. Integrity: ✓ Verified.</p>
+              </div>
+            </div>
+
+            <div class="timeline-item flex gap-3" style="position: relative; padding-bottom: var(--space-5);">
+              <div class="timeline-marker" style="position: absolute; left: -34px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--grad-primary); box-shadow: var(--shadow-glow);"></div>
+              <div class="timeline-content flex-1">
+                <div class="flex items-center gap-2" style="margin-bottom: var(--space-1);">
+                  <span class="badge badge-info">TAMPER ALERT</span>
+                  <span class="caption text-muted">02:15 PM</span>
+                </div>
+                <p class="body-sm text-secondary">MPU6050 detected tilt >45°. Driver notified. Investigation logged. No temp deviation.</p>
+              </div>
+            </div>
+
+            <div class="timeline-item flex gap-3" style="position: relative; padding-bottom: var(--space-5);">
+              <div class="timeline-marker" style="position: absolute; left: -34px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--grad-warm); box-shadow: var(--shadow-glow-warm);"></div>
+              <div class="timeline-content flex-1">
+                <div class="flex items-center gap-2" style="margin-bottom: var(--space-1);">
+                  <span class="badge badge-warm">HANDOFF 2</span>
+                  <span class="caption text-muted">06:45 PM</span>
+                </div>
+                <p class="body-sm text-secondary">DRV-9034 → DRV-1102 at Hospital Receiving Dock. Temp: 3.8°C. Chain intact.</p>
+              </div>
+            </div>
+
+            <div class="timeline-item flex gap-3" style="position: relative;">
+              <div class="timeline-marker" style="position: absolute; left: -34px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-primary); box-shadow: var(--shadow-glow);"></div>
+              <div class="timeline-content flex-1">
+                <div class="flex items-center gap-2" style="margin-bottom: var(--space-1);">
+                  <span class="badge badge-success">DELIVERED</span>
+                  <span class="caption text-muted">07:20 PM</span>
+                </div>
+                <p class="body-sm text-secondary">Final custody transfer to pharmacy. Integrity: ✓ Verified. Complete audit trail available.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Bottom: Key Guarantees -->
+      <article class="card animate-fade-in-up delay-1">
+        <h4 class="h3" style="margin-bottom: var(--space-3);">Custody Guarantees</h4>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="feature-card">
+            <div class="feature-icon icon-wrap">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+            </div>
+            <h5 class="feature-title">Non-Repudiation</h5>
+            <p class="feature-desc">Both drivers sign cryptographically — neither can deny participation</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon icon-wrap icon-wrap-cyan">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <h5 class="feature-title">Timestamp Authority</h5>
+            <p class="feature-desc">Server-verified timestamps — no local clock manipulation possible</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon icon-wrap icon-wrap-warm">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <path d="M12 6v6l2 2"/>
+              </svg>
+            </div>
+            <h5 class="feature-title">GPS Anchoring</h5>
+            <p class="feature-desc">Handoff location recorded from both devices — cross-verified</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon icon-wrap icon-wrap-danger">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <path d="M12 9v4M12 17h.01"/>
+              </svg>
+            </div>
+            <h5 class="feature-title">Condition at Transfer</h5>
+            <p class="feature-desc">Temperature & integrity state captured at exact handoff moment</p>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <footer class="slide-footer">
+      <span class="text-muted">Who had it. Where. When. In what condition. Undeniable.</span>
+    </footer>
+  </div>
+</body>
+</html>
