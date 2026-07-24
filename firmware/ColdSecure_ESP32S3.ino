@@ -7,7 +7,7 @@
  * Features:
  *   - DS18B20 OneWire Temp Probe (GPIO 4)
  *   - PIR Motion & Hatch Tamper Detection (GPIO 5)
- *   - BOOT Button Tamper Reset (Hold GPIO 0 for > 5 seconds to clear breach)
+ *   - BOOT Button Single-Click Tamper Toggle (Press 1 time to unlatch/relatch tamper)
  *   - MPU6050 6-Axis Accelerometer/Gyroscope I2C (SDA 8, SCL 9)
  *   - NEO-6M GPS Module UART (RX 18, TX 17) - Route: KCG College ➔ Adyar
  *   - Built-in WS2812 NeoPixel RGB Diagnostic LED (GPIO 48)
@@ -43,7 +43,7 @@
 // ====================================================================
 // HARDWARE PIN MAPPING
 // ====================================================================
-#define PIN_BOOT_BTN 0   // Onboard BOOT Button (Hold > 5 sec to reset tamper)
+#define PIN_BOOT_BTN 0   // Onboard BOOT Button (Single Click to toggle tamper unlatch)
 #define PIN_DS18B20  4   // OneWire Temperature Probe (4.7kΩ Pull-up required)
 #define PIN_PIR      5   // PIR Motion / Hatch Tamper Sensor
 #define PIN_I2C_SDA  8   // MPU6050 I2C SDA
@@ -102,10 +102,12 @@ unsigned long lastTelemetryTime = 0;
 const unsigned long TELEMETRY_INTERVAL_MS = 5000; // 5 Seconds Interval
 uint32_t packetSequenceCounter = 0;
 
-// Tamper Latch & BOOT Button Reset Variables
+// Tamper Latch & Single Click Toggle Variables
 bool tamperLatched = false;
-unsigned long bootPressStartTime = 0;
-const unsigned long BOOT_HOLD_TIME_MS = 5000; // 5 Seconds Hold Threshold
+int lastBtnState = HIGH;
+int currentBtnState = HIGH;
+unsigned long lastDebounceTime = 0;
+const unsigned long DEBOUNCE_DELAY_MS = 50;
 
 // Color Constants for WS2812 RGB LED (GPIO 48)
 void setRgbColor(uint8_t r, uint8_t g, uint8_t b) {
@@ -183,7 +185,7 @@ void setup() {
 
   // Initialize Onboard BOOT Button (GPIO 0)
   pinMode(PIN_BOOT_BTN, INPUT_PULLUP);
-  Serial.println("[OK] BOOT Button initialized on GPIO 0 (Hold >5 sec to reset tamper)");
+  Serial.println("[OK] BOOT Button initialized on GPIO 0 (Single click to toggle tamper unlatch)");
 
   // Initialize Built-in RGB LED (GPIO 48) -> White (Booting)
   rgbLed.begin();
@@ -244,25 +246,34 @@ void setup() {
 // MAIN LOOP
 // ====================================================================
 void loop() {
-  // 1. BOOT Button (GPIO 0) > 5 Seconds Hold Detector to Clear Tamper
-  if (digitalRead(PIN_BOOT_BTN) == LOW) { // Button Pressed (Active LOW)
-    if (bootPressStartTime == 0) {
-      bootPressStartTime = millis();
-      Serial.println("[BTN] BOOT Button Pressed. Hold for 5 seconds to clear breach...");
-    } else if (millis() - bootPressStartTime >= BOOT_HOLD_TIME_MS) {
-      // BOOT button held for > 5 seconds -> Reset Tamper Latch!
-      if (tamperLatched) {
-        tamperLatched = false;
-        setRgbColor(0, 255, 0); // Reset LED to 🟢 Green Healthy
-        Serial.println("\n====================================================");
-        Serial.println("  [TAMPER CLEARED] BOOT Button held for > 5 Seconds!");
-        Serial.println("  Tamper Breach State RESET to SECURE.");
-        Serial.println("====================================================\n");
+  // 1. BOOT Button (GPIO 0) Single-Click Debounced Toggle Detector
+  int reading = digitalRead(PIN_BOOT_BTN);
+  if (reading != lastBtnState) {
+    lastDebounceTime = millis();
+  }
+
+  if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY_MS) {
+    if (reading != currentBtnState) {
+      currentBtnState = reading;
+      if (currentBtnState == LOW) { // Button Single Click Pressed (Active LOW)
+        tamperLatched = !tamperLatched; // Toggle unlatch state
+        if (!tamperLatched) {
+          setRgbColor(0, 255, 0); // Reset LED to 🟢 Green Healthy
+          Serial.println("\n====================================================");
+          Serial.println("  [BOOT CLICK TOGGLE] Tamper UNLATCHED!");
+          Serial.println("  Security status toggled to SECURE (Green LED).");
+          Serial.println("====================================================\n");
+        } else {
+          setRgbColor(255, 0, 0); // Set LED to 🔴 Red Breach
+          Serial.println("\n====================================================");
+          Serial.println("  [BOOT CLICK TOGGLE] Tamper LATCHED!");
+          Serial.println("  Security status toggled to POTENTIAL BREACH (Red LED).");
+          Serial.println("====================================================\n");
+        }
       }
     }
-  } else {
-    bootPressStartTime = 0; // Reset press timer on button release
   }
+  lastBtnState = reading;
 
   // 2. Read GPS Serial Stream
   while (gpsSerial.available() > 0) {
@@ -303,7 +314,7 @@ void loop() {
     float totalAccel = sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ);
     bool shockDetected = (totalAccel > 15.0); // Shock threshold > 15 m/s²
 
-    // Latch tamper state if motion or shock is detected
+    // Latch tamper state if motion or shock is detected (unless unlatched via BOOT click)
     if (motionDetected || shockDetected) {
       tamperLatched = true;
     }
@@ -366,7 +377,7 @@ void loop() {
     Serial.println("  💥 MPU6050 3-Axis Accel     : X=" + String(accelX, 2) + " Y=" + String(accelY, 2) + " Z=" + String(accelZ, 2) + " (Shock: " + String(shockDetected ? "YES" : "NO") + ")");
     Serial.println("  📍 GPS Location Coordinates : Lat " + String(latitude, 6) + ", Lng " + String(longitude, 6) + " (" + String(speedKmh, 1) + " km/h)");
     Serial.println("  🗺 Transit Corridor Route   : KCG College (Karapakkam) ➔ Adyar Courier");
-    Serial.println("  🛡 Tamper Security State    : " + String(tamperLatched ? "🔴 BREACH LATCHED (Hold BOOT >5s to clear)" : "🟢 SECURE"));
+    Serial.println("  🛡 Tamper Security State    : " + String(tamperLatched ? "🔴 BREACH LATCHED (Click BOOT to unlatch)" : "🟢 SECURE"));
     Serial.println("  🔐 HMAC-SHA256 Signature    : " + hmacSig);
     Serial.println("  📦 JSON Payload String      : " + jsonPayload);
     Serial.println("--------------------------------------------------------------------");
