@@ -9,6 +9,7 @@
  *   - MPU6050 6-Axis Accelerometer/Gyroscope I2C (SDA 8, SCL 9)
  *   - NEO-6M GPS Module UART (RX 18, TX 17)
  *   - Built-in WS2812 NeoPixel RGB Diagnostic LED (GPIO 48)
+ *   - Open Network Auto-Connect & Failover Wi-Fi Engine
  *   - HMAC-SHA256 Payload Signature Engine
  *   - HTTP POST REST API Telemetry Transmission to Render Server
  * ====================================================================
@@ -39,8 +40,8 @@
 // ====================================================================
 // NETWORK & API CONFIGURATION
 // ====================================================================
-const char* WIFI_SSID = "YOUR_WIFI_SSID";
-const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";
+const char* DEFAULT_WIFI_SSID = "YOUR_WIFI_SSID";
+const char* DEFAULT_WIFI_PASS = "YOUR_WIFI_PASSWORD";
 
 // Render REST API Backend Endpoint
 const char* API_URL = "https://ctl-fah256.onrender.com/api/telemetry/SHP-88219";
@@ -72,6 +73,38 @@ uint32_t packetSequenceCounter = 0;
 void setRgbColor(uint8_t r, uint8_t g, uint8_t b) {
   rgbLed.setPixelColor(0, rgbLed.Color(r, g, b));
   rgbLed.show();
+}
+
+// Function to scan and connect to any open Wi-Fi network automatically
+bool connectToOpenNetwork() {
+  Serial.println("[NET] Scanning for open Wi-Fi networks...");
+  int n = WiFi.scanNetworks();
+  if (n == 0) {
+    Serial.println("[NET] No Wi-Fi networks found.");
+    return false;
+  }
+
+  for (int i = 0; i < n; ++i) {
+    if (WiFi.encryptionType(i) == WIFI_AUTH_OPEN) {
+      String openSsid = WiFi.SSID(i);
+      Serial.print("[NET] Open network found! Connecting to: ");
+      Serial.println(openSsid);
+
+      WiFi.begin(openSsid.c_str());
+      int retries = 0;
+      while (WiFi.status() != WL_CONNECTED && retries < 15) {
+        delay(500);
+        Serial.print(".");
+        retries++;
+      }
+
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\n[NET] Connected to open network: " + openSsid);
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 // Compute HMAC-SHA256 Signature using mbedTLS
@@ -138,15 +171,21 @@ void setup() {
 
   // Connect to Wi-Fi -> Blue LED
   setRgbColor(0, 0, 255); // 🔵 Blue Connecting Wi-Fi
-  Serial.print("[NET] Connecting to Wi-Fi: ");
-  Serial.println(WIFI_SSID);
+  Serial.print("[NET] Trying default Wi-Fi: ");
+  Serial.println(DEFAULT_WIFI_SSID);
 
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  WiFi.begin(DEFAULT_WIFI_SSID, DEFAULT_WIFI_PASS);
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 12) {
     delay(500);
     Serial.print(".");
     attempts++;
+  }
+
+  // If default credentials fail, auto-connect to any open Wi-Fi network!
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("\n[NET] Default Wi-Fi unavailable. Scanning for OPEN Wi-Fi networks...");
+    connectToOpenNetwork();
   }
 
   if (WiFi.status() == WL_CONNECTED) {
@@ -165,6 +204,11 @@ void loop() {
   // Read GPS Serial Stream
   while (gpsSerial.available() > 0) {
     gps.encode(gpsSerial.read());
+  }
+
+  // Auto re-connect check if connection lost
+  if (WiFi.status() != WL_CONNECTED && millis() % 15000 < 500) {
+    connectToOpenNetwork();
   }
 
   // Periodically Poll Sensors & Transmit Telemetry
