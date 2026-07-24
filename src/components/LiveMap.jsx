@@ -8,16 +8,17 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
   const tileLayerRef = useRef(null);
   const markersRef = useRef([]);
   const polylinesRef = useRef([]);
+  const geofencesRef = useRef([]);
   const [showGeofences, setShowGeofences] = useState(true);
 
   useEffect(() => {
     if (!mapRef.current) return;
     if (leafletInstance.current) return;
 
-    // Center map over transit corridor
+    // Default center set over Chennai OMR Corridor (KCG College to Adyar)
     const map = L.map(mapRef.current, {
-      center: [20.5937, 78.9629],
-      zoom: 5,
+      center: [12.9550, 80.2450],
+      zoom: 12,
       zoomControl: false,
     });
     leafletInstance.current = map;
@@ -50,75 +51,116 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
     const map = leafletInstance.current;
     if (!map) return;
 
-    // Clear previous markers & polylines
+    // Clear previous markers, polylines & geofences
     markersRef.current.forEach(m => map.removeLayer(m));
     markersRef.current = [];
 
     polylinesRef.current.forEach(p => map.removeLayer(p));
     polylinesRef.current = [];
 
+    geofencesRef.current.forEach(g => map.removeLayer(g));
+    geofencesRef.current = [];
+
     const activeFleet = fleet || [];
     const activeShipments = shipments || [];
 
-    // Render polyline routes dynamically for active shipments
-    activeShipments.forEach(shp => {
-      if (shp.location && shp.location.lat && shp.location.lng) {
-        const poly = L.polyline([[shp.location.lat, shp.location.lng]], {
-          color: '#3b82f6',
-          weight: 4,
-          opacity: 0.9,
-          dashArray: '8, 8',
-        }).addTo(map);
-        polylinesRef.current.push(poly);
-      }
-    });
+    // Render KCG College to Adyar Geofences if enabled
+    if (showGeofences) {
+      // KCG College Karapakkam Safe Zone
+      const gfKcg = L.circle([12.9100, 80.2285], {
+        color: '#10b981',
+        fillColor: '#10b981',
+        fillOpacity: 0.15,
+        radius: 1200,
+      }).bindTooltip("Geofence: KCG College Origin Hub", { permanent: false }).addTo(map);
+      geofencesRef.current.push(gfKcg);
 
-    activeFleet.forEach(item => {
-      const isCritical = item.vehicleStatus?.includes('WARNING') || item.vehicleStatus?.includes('ALERT');
-      
+      // Adyar Courier Service Safe Zone
+      const gfAdyar = L.circle([13.0067, 80.2571], {
+        color: '#3b82f6',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.15,
+        radius: 1500,
+      }).bindTooltip("Geofence: Adyar Courier Destination Hub", { permanent: false }).addTo(map);
+      geofencesRef.current.push(gfAdyar);
+    }
+
+    // Combine shipments and fleet items for marker rendering
+    const displayLocations = [];
+
+    activeShipments.forEach(shp => {
+      const isCritical = shp.status === 'CRITICAL_ALERT' || shp.tamperStatus === 'POTENTIAL_BREACH';
+      const lat = shp.location?.lat || 12.9100;
+      const lng = shp.location?.lng || 80.2285;
+
+      displayLocations.push([lat, lng]);
+
+      // Draw active transit route line (KCG College ➔ Perungudi ➔ Thiruvanmiyur ➔ Adyar)
+      const polyCoords = [
+        [12.9100, 80.2285], // KCG College
+        [12.9400, 80.2370], // Perungudi Toll
+        [12.9700, 80.2480], // Thiruvanmiyur
+        [13.0067, 80.2571]  // Adyar Courier
+      ];
+
+      const poly = L.polyline(polyCoords, {
+        color: isCritical ? '#ef4444' : '#3b82f6',
+        weight: 4,
+        opacity: 0.9,
+        dashArray: '8, 8',
+      }).bindTooltip(`Transit Route: ${shp.cargoName}`, { permanent: false }).addTo(map);
+      polylinesRef.current.push(poly);
+
       const customIcon = L.divIcon({
         className: 'custom-vehicle-marker',
         html: `
           <div class="relative flex items-center justify-center">
-            <div class="w-8 h-8 rounded-full ${isCritical ? 'bg-red-500 animate-ping opacity-75' : 'bg-blue-400 opacity-60'} absolute"></div>
-            <div class="w-8 h-8 rounded-full ${isCritical ? 'bg-red-600' : 'bg-blue-600'} text-white flex items-center justify-center shadow-lg relative z-10 border-2 ${isDarkMode ? 'border-slate-900' : 'border-white'}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 2 2h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+            <div class="w-9 h-9 rounded-full ${isCritical ? 'bg-red-500 animate-ping opacity-75' : 'bg-blue-400 opacity-60'} absolute"></div>
+            <div class="w-9 h-9 rounded-full ${isCritical ? 'bg-red-600' : 'bg-blue-600'} text-white flex items-center justify-center shadow-lg relative z-10 border-2 ${isDarkMode ? 'border-slate-900' : 'border-white'}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 2 2h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
             </div>
           </div>
         `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
       });
 
       const popupContent = `
-        <div style="font-family: system-ui; padding: 4px;">
+        <div style="font-family: system-ui; padding: 4px; min-width: 180px;">
           <div style="font-weight: bold; color: ${isCritical ? '#ef4444' : '#3b82f6'}; font-size: 13px;">
-            ${item.name} (${item.vehicleId})
+            ${shp.id} - ${shp.cargoName.substring(0, 24)}...
           </div>
           <div style="font-size: 11px; margin-top: 4px; color: ${isDarkMode ? '#e2e8f0' : '#334155'};">
-            <strong>Driver:</strong> ${item.driver}<br/>
-            <strong>Cargo Temp:</strong> <span style="color: ${isCritical ? '#ef4444' : '#10b981'}; font-weight: bold;">${item.reeferActualTemp}°C</span><br/>
-            <strong>Set Point:</strong> ${item.reeferSetTemp}°C<br/>
-            <strong>Current Speed:</strong> ${item.currentSpeed}<br/>
-            <strong>Assigned Cargo:</strong> ${item.assignedShipment}
+            <strong>Payload Temp:</strong> <span style="color: ${isCritical ? '#ef4444' : '#10b981'}; font-weight: bold;">${shp.currentTemp}°C</span><br/>
+            <strong>Safe Window:</strong> ${shp.minSafeTemp}°C to ${shp.maxSafeTemp}°C<br/>
+            <strong>Route:</strong> ${shp.source} ➔ ${shp.destination}<br/>
+            <strong>Hardware Gateway:</strong> ${shp.deviceHardwareId || 'GW-RUGGED-9941'}<br/>
+            <strong>Tamper Status:</strong> <span style="color: ${isCritical ? '#ef4444' : '#10b981'}; font-weight: bold;">${shp.tamperStatus || 'SECURE'}</span>
           </div>
         </div>
       `;
 
+      const marker = L.marker([lat, lng], { icon: customIcon })
+        .bindPopup(popupContent)
+        .addTo(map);
+
+      markersRef.current.push(marker);
+    });
+
+    activeFleet.forEach(item => {
       if (item.gps && item.gps.lat && item.gps.lng) {
-        const marker = L.marker([item.gps.lat, item.gps.lng], { icon: customIcon })
-          .bindPopup(popupContent)
-          .addTo(map);
-
-        markersRef.current.push(marker);
-
-        if (selectedShipmentId && item.assignedShipment === selectedShipmentId) {
-          map.setView([item.gps.lat, item.gps.lng], 9);
-          marker.openPopup();
-        }
+        displayLocations.push([item.gps.lat, item.gps.lng]);
       }
     });
-  }, [fleet, shipments, selectedShipmentId, isDarkMode]);
+
+    // Auto-fit map bounds over active locations
+    if (displayLocations.length > 0) {
+      const bounds = L.latLngBounds(displayLocations);
+      map.fitBounds(bounds.pad(0.3));
+    } else {
+      map.setView([12.9550, 80.2450], 12);
+    }
+  }, [fleet, shipments, selectedShipmentId, showGeofences, isDarkMode]);
 
   // Update Tile Layer if Theme Changes dynamically
   useEffect(() => {
@@ -146,7 +188,7 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
           <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
             isDarkMode ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
           }`}>
-            ● GPS STREAMING
+            ● CHENNAI OMR CORRIDOR LIVE
           </span>
         </div>
 
@@ -178,7 +220,7 @@ export default function LiveMap({ fleet, shipments, selectedShipmentId, isDarkMo
           <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Map Legend</div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span>Optimal Cold Transport</span>
+            <span>Optimal Cold Transport (KCG ➔ Adyar)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>

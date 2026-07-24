@@ -112,6 +112,32 @@ export const ingestTelemetry = (req, res) => {
     };
   }
 
+  // Update fleet array for vehicle map tracking
+  let fleetItem = store.fleet.find(f => f.assignedShipment === targetId || f.vehicleId === 'TRK-908');
+  if (!fleetItem) {
+    fleetItem = {
+      vehicleId: 'TRK-908',
+      name: 'Volvo FH16 Cold Reefer (Unit 908)',
+      driver: shp.driver || 'Assigned Driver',
+      driverId: shp.driverId || 'DRV-104',
+      vehicleStatus: telemetryPoint.tamperStatus === 'POTENTIAL_BREACH' ? 'ALERT' : 'ON_ROUTE',
+      currentSpeed: telemetryPoint.speed || '48.5 km/h',
+      fuelLevel: '82%',
+      reeferSetTemp: -75.0,
+      reeferActualTemp: telemetryPoint.temp,
+      route: `${telemetryPoint.source} ➔ ${telemetryPoint.destination}`,
+      assignedShipment: targetId,
+      gps: { lat: telemetryPoint.lat, lng: telemetryPoint.lng }
+    };
+    store.fleet.unshift(fleetItem);
+  } else {
+    fleetItem.reeferActualTemp = telemetryPoint.temp;
+    fleetItem.vehicleStatus = telemetryPoint.tamperStatus === 'POTENTIAL_BREACH' ? 'ALERT' : 'ON_ROUTE';
+    fleetItem.gps = { lat: telemetryPoint.lat, lng: telemetryPoint.lng };
+    fleetItem.currentSpeed = telemetryPoint.speed || '48.5 km/h';
+    fleetItem.route = `${telemetryPoint.source} ➔ ${telemetryPoint.destination}`;
+  }
+
   // Auto-trigger alert if tamper detected
   if (telemetryPoint.tamperStatus === 'POTENTIAL_BREACH' || telemetryPoint.motionDetected || telemetryPoint.shockDetected) {
     shp.status = 'CRITICAL_ALERT';
