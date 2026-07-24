@@ -1,0 +1,39 @@
+name: ESP32-S3 Cloud Compilation
+
+on:
+  push:
+    paths:
+      - 'firmware/**'
+      - 'platformio.ini'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install PlatformIO CLI
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade platformio
+
+      - name: Copy Firmware Sketch for PlatformIO
+        run: |
+          mkdir -p src
+          cp firmware/ColdSecure_ESP32S3.ino src/main.cpp
+
+      - name: Run ESP32-S3 Cloud Build
+        run: pio run
+
+      - name: Upload Compiled Firmware Binary Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: esp32s3-firmware-binary
+          path: .pio/build/esp32-s3-devkitc-1/firmware.bin
