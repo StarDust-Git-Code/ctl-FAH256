@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Home, Package, Thermometer, AlertTriangle, ShieldCheck, Truck, Users, Link2, MapPin,
-  TrendingUp, History, Cpu, Settings, FileText, Activity, Lock, Moon, Sun, ChevronRight, Menu, X, Trash2, RefreshCw
+  TrendingUp, History, Cpu, Settings, FileText, Activity, Lock, Moon, Sun, ChevronRight, Menu, X, Trash2, RefreshCw, Smartphone
 } from 'lucide-react';
 
 import { apiService } from './services/api';
@@ -20,6 +20,7 @@ import HistoryView from './views/HistoryView';
 import DeviceManagementView from './views/DeviceManagementView';
 import SettingsView from './views/SettingsView';
 import ReportsView from './views/ReportsView';
+import MobileHandlerView from './views/MobileHandlerView';
 import ColdChainLogo from './components/ColdChainLogo';
 
 export default function App() {
@@ -54,7 +55,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('Error fetching backend API state:', err);
-    } fontFinally: {
+    } finally {
       setLoading(false);
     }
   };
@@ -82,9 +83,10 @@ export default function App() {
   const navItems = [
     { id: 'DASHBOARD', label: 'Dashboard (Home)', icon: Home },
     { id: 'SHIPMENTS', label: 'Shipments', icon: Package, badge: shipments.length },
+    { id: 'MOBILE_HANDLER', label: 'Parcel Mobile Handler', icon: Smartphone, highlight: true },
     { id: 'MONITORING', label: 'Live Monitoring', icon: Thermometer },
     { id: 'ALERTS', label: 'Alerts', icon: AlertTriangle, badge: alerts.length, badgeColor: 'bg-red-500' },
-    { id: 'INTEGRITY', label: 'Integrity Verification', icon: Lock, highlight: true },
+    { id: 'INTEGRITY', label: 'Integrity Verification', icon: Lock },
     { id: 'FLEET', label: 'Fleet', icon: Truck },
     { id: 'DRIVERS', label: 'Drivers', icon: Users },
     { id: 'CUSTODY', label: 'Chain of Custody', icon: Link2 },
@@ -269,6 +271,13 @@ export default function App() {
               onSelectShipment={handleSelectShipment}
               onRefreshData={reloadAllData}
               isDarkMode={isDarkMode}
+            />
+          )}
+
+          {activeTab === 'MOBILE_HANDLER' && (
+            <MobileHandlerView
+              isDarkMode={isDarkMode}
+              onSelectShipment={handleSelectShipment}
             />
           )}
 
