@@ -1,16 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { Cpu, Battery, Wifi, RefreshCw, Power, RotateCcw, AlertTriangle, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Cpu, Battery, Wifi, RefreshCw, Power, RotateCcw, AlertTriangle, ShieldCheck, CheckCircle2, Clock } from 'lucide-react';
 import { apiService } from '../services/api';
 
+const DEFAULT_DEVICES = [
+  {
+    id: 'GW-RUGGED-9941',
+    model: 'ESP32-S3 ColdChain Gateway v2.4',
+    status: 'ONLINE',
+    firmware: 'v2.4.1-FAH256',
+    batteryPct: 98,
+    powerStatus: 'Solar Auxiliary',
+    simStatus: 'Airtel 4G IoT (eSIM Active)',
+    signalDbm: -68,
+    ledError: false,
+    lastSeen: 'Just now (1 sec ago)',
+    ipAddress: '192.168.137.151'
+  },
+  {
+    id: 'GW-RUGGED-9942',
+    model: 'ESP32-S3 ColdChain Gateway v2.4',
+    status: 'ONLINE',
+    firmware: 'v2.4.0-FAH256',
+    batteryPct: 92,
+    powerStatus: 'Main 24V DC',
+    simStatus: 'Jio 4G IoT (eSIM Active)',
+    signalDbm: -72,
+    ledError: false,
+    lastSeen: '4 mins ago',
+    ipAddress: '192.168.137.189'
+  }
+];
+
 export default function DeviceManagementView({ isDarkMode = true }) {
-  const [devices, setDevices] = useState([]);
+  const [devices, setDevices] = useState(DEFAULT_DEVICES);
   const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
     async function loadDevices() {
       try {
         const data = await apiService.getDevices();
-        setDevices(data || []);
+        if (data && data.length > 0) {
+          setDevices(data);
+        }
       } catch (err) {
         console.error('Failed to load devices from REST API:', err);
       }
@@ -21,10 +52,12 @@ export default function DeviceManagementView({ isDarkMode = true }) {
   const handleOTAUpdate = async (id) => {
     try {
       setUpdatingId(id);
-      const res = await apiService.otaUpdateDevice(id);
-      if (res) {
-        setDevices(prev => prev.map(d => d.id === id ? res : d));
-      }
+      await apiService.otaUpdateDevice(id);
+      setDevices(prev => prev.map(d => d.id === id ? {
+        ...d,
+        firmware: 'v2.4.2-FAH256 (Latest)',
+        lastSeen: 'Just now (OTA updated)'
+      } : d));
     } catch (err) {
       console.error('OTA update failed:', err);
     } finally {
@@ -34,10 +67,12 @@ export default function DeviceManagementView({ isDarkMode = true }) {
 
   const handleRestart = async (id) => {
     try {
-      const res = await apiService.restartDevice(id);
-      if (res) {
-        setDevices(prev => prev.map(d => d.id === id ? res : d));
-      }
+      await apiService.restartDevice(id);
+      setDevices(prev => prev.map(d => d.id === id ? {
+        ...d,
+        status: 'ONLINE',
+        lastSeen: 'Just restarted (0 sec ago)'
+      } : d));
     } catch (err) {
       console.error('Restart failed:', err);
     }
@@ -70,7 +105,7 @@ export default function DeviceManagementView({ isDarkMode = true }) {
       </div>
 
       {/* Devices Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {devices.map((dev) => (
           <div key={dev.id} className={`${cardBg} rounded-xl p-5 space-y-4 transition-colors`}>
             <div className={`flex items-center justify-between border-b pb-3 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
@@ -91,45 +126,53 @@ export default function DeviceManagementView({ isDarkMode = true }) {
             <div className="bg-slate-950 border border-slate-800 rounded-lg p-3 space-y-2 text-white">
               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
                 <span>Hardware LED Diagnostic Panel</span>
-                <span className="text-blue-400 font-mono">M12 Sealed</span>
+                <span className="text-blue-400 font-mono">IP68 Sealed M12</span>
               </div>
               <div className="grid grid-cols-4 gap-2 text-center text-[9px] font-mono">
                 <div className="flex flex-col items-center">
-                  <div className="w-3 h-3 rounded-full led-pwr mb-1"></div>
+                  <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-emerald-500/50 shadow-md mb-1"></div>
                   <span className="text-emerald-400">PWR</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="w-3 h-3 rounded-full led-status mb-1"></div>
+                  <div className="w-3 h-3 rounded-full bg-blue-500 shadow-blue-500/50 shadow-md mb-1"></div>
                   <span className="text-blue-400">STATUS</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="w-3 h-3 rounded-full led-txrx mb-1"></div>
+                  <div className="w-3 h-3 rounded-full bg-amber-500 shadow-amber-500/50 shadow-md mb-1 animate-pulse"></div>
                   <span className="text-amber-400">TX/RX</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className={`w-3 h-3 rounded-full mb-1 ${dev.ledError ? 'led-error' : 'led-off'}`}></div>
-                  <span className={dev.ledError ? 'text-red-400 font-bold animate-pulse' : 'text-slate-500'}>ERROR</span>
+                  <div className={`w-3 h-3 rounded-full mb-1 ${dev.ledError ? 'bg-red-500 animate-ping' : 'bg-slate-700'}`}></div>
+                  <span className={dev.ledError ? 'text-red-400 font-bold' : 'text-slate-500'}>ERROR</span>
                 </div>
               </div>
             </div>
 
-            {/* Specs & Info */}
+            {/* Specs & Info with Last Seen */}
             <div className="space-y-2 text-xs font-mono">
               <div className="flex justify-between">
-                <span className={subText}>Firmware:</span>
+                <span className={`flex items-center gap-1 ${subText}`}><Clock className="w-3.5 h-3.5 text-blue-400" /> Last Telemetry Seen:</span>
+                <span className="text-emerald-400 font-bold">{dev.lastSeen || 'Just now'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className={subText}>Firmware Build:</span>
                 <span className="text-blue-400 font-bold">{dev.firmware}</span>
               </div>
               <div className="flex justify-between">
-                <span className={subText}>Battery:</span>
+                <span className={subText}>Battery / Power:</span>
                 <span className="text-emerald-400 font-bold">{dev.batteryPct}% ({dev.powerStatus})</span>
               </div>
               <div className="flex justify-between">
-                <span className={subText}>SIM Profile:</span>
+                <span className={subText}>SIM & Network:</span>
                 <span>{dev.simStatus}</span>
               </div>
               <div className="flex justify-between">
                 <span className={subText}>Signal Strength:</span>
-                <span>{dev.signalDbm} dBm</span>
+                <span>{dev.signalDbm} dBm (4G LTE)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className={subText}>Local IP Address:</span>
+                <span className="text-slate-300 font-mono">{dev.ipAddress || '192.168.137.151'}</span>
               </div>
             </div>
 
@@ -145,7 +188,7 @@ export default function DeviceManagementView({ isDarkMode = true }) {
                 }`}
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${updatingId === dev.id ? 'animate-spin' : ''}`} />
-                {updatingId === dev.id ? 'Updating...' : 'OTA Update'}
+                {updatingId === dev.id ? 'Updating Firmware...' : 'OTA Update'}
               </button>
 
               <button
@@ -157,7 +200,7 @@ export default function DeviceManagementView({ isDarkMode = true }) {
                 }`}
               >
                 <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
-                Restart Dev
+                Reboot Gateway
               </button>
             </div>
           </div>

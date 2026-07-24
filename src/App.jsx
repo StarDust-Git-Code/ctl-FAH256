@@ -91,7 +91,7 @@ export default function App() {
     { id: 'DRIVERS', label: 'Drivers', icon: Users },
     { id: 'CUSTODY', label: 'Chain of Custody', icon: Link2 },
     { id: 'MAP', label: 'Live Map Command', icon: MapPin },
-    { id: 'ANALYTICS', label: 'AI Analytics', icon: TrendingUp },
+    { id: 'ANALYTICS', label: 'Predictive Analytics', icon: TrendingUp },
     { id: 'HISTORY', label: 'Shipment History', icon: History },
     { id: 'DEVICES', label: 'Device Management', icon: Cpu },
     { id: 'SETTINGS', label: 'Settings', icon: Settings },

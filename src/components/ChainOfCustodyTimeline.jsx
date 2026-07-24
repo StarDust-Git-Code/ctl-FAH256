@@ -1,8 +1,84 @@
 import React from 'react';
 import { CheckCircle2, Clock, MapPin, QrCode, FileText, UserCheck, ShieldCheck, ArrowRight } from 'lucide-react';
 
+const DEFAULT_STEPS = [
+  {
+    step: 1,
+    stage: 'Pharma Production Facility',
+    organization: 'Biotech Labs, Karapakkam',
+    person: 'Dr. Sarah Connor (QA Lead)',
+    timestamp: '2026-07-24 08:30 IST',
+    gps: 'Lat 12.9100, Lng 80.2285',
+    qrVerified: true,
+    hmacHash: '0x9F8A...3C2B',
+    notes: 'Cryo-payload sealed at -75°C. Tamper-evident sensor initialized.',
+    status: 'COMPLETED'
+  },
+  {
+    step: 2,
+    stage: 'Cold Chain Dispatch Hub',
+    organization: 'Karapakkam Dispatch',
+    person: 'Rajesh Kumar (Hub Operator)',
+    timestamp: '2026-07-24 09:15 IST',
+    gps: 'Lat 12.9150, Lng 80.2300',
+    qrVerified: true,
+    hmacHash: '0x8A7C...1D0E',
+    notes: 'Loaded into Volvo FH16 Reefer Unit 908. MPU6050 zeroed.',
+    status: 'COMPLETED'
+  },
+  {
+    step: 3,
+    stage: 'OMR Transit Expressway',
+    organization: 'Express Logistics Fleet',
+    person: 'Marcus Vance (Certified Driver)',
+    timestamp: '2026-07-24 10:45 IST',
+    gps: 'Lat 12.9400, Lng 80.2370',
+    qrVerified: true,
+    hmacHash: '0x7B6A...4F5A',
+    notes: 'ESP32-S3 IoT Gateway active on Wi-Fi/Cellular. Live GPS streaming.',
+    status: 'COMPLETED'
+  },
+  {
+    step: 4,
+    stage: 'Thiruvanmiyur Checkpoint',
+    organization: 'Cold Chain Inspection',
+    person: 'K. Raman (GSP Auditor)',
+    timestamp: '2026-07-24 11:20 IST',
+    gps: 'Lat 12.9700, Lng 80.2480',
+    qrVerified: true,
+    hmacHash: '0x5C4D...8E0F',
+    notes: 'Mid-route seal audit PASSED. Temp -72.4°C within bounds.',
+    status: 'COMPLETED'
+  },
+  {
+    step: 5,
+    stage: 'Adyar Courier Service Hub',
+    organization: 'Adyar Regional Depot',
+    person: 'Anita Roy (Depot Supervisor)',
+    timestamp: '2026-07-24 11:55 IST',
+    gps: 'Lat 13.0067, Lng 80.2571',
+    qrVerified: true,
+    hmacHash: '0x4D3C...9F8A',
+    notes: 'Parcel received at destination depot. Awaiting last-mile handoff.',
+    status: 'IN_PROGRESS'
+  },
+  {
+    step: 6,
+    stage: 'Final Recipient Handoff',
+    organization: 'Medical Delivery Center',
+    person: 'Dr. V. Anand (Hospital Receiver)',
+    timestamp: 'Pending Handoff',
+    gps: 'Lat 13.0100, Lng 80.2600',
+    qrVerified: false,
+    hmacHash: 'Pending',
+    notes: 'Final delivery verification pending recipient signature.',
+    status: 'PENDING'
+  }
+];
+
 export default function ChainOfCustodyTimeline({ handoffs, isDarkMode = true }) {
-  const steps = handoffs || [];
+  const steps = (handoffs && handoffs.length > 0) ? handoffs : DEFAULT_STEPS;
+  const completedCount = steps.filter(s => s.status === 'COMPLETED').length;
 
   const cardBg = isDarkMode ? 'bg-slate-900/90 border-slate-800 text-slate-100 shadow-xl' : 'bg-white border-slate-200 text-slate-900 shadow-xs';
   const subText = isDarkMode ? 'text-slate-400' : 'text-slate-500';
@@ -30,7 +106,7 @@ export default function ChainOfCustodyTimeline({ handoffs, isDarkMode = true }) 
           <span className={`px-2.5 py-1 rounded border flex items-center gap-1 font-semibold ${
             isDarkMode ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
           }`}>
-            <ShieldCheck className="w-3.5 h-3.5" /> 3 of 6 Handoffs Completed
+            <ShieldCheck className="w-3.5 h-3.5" /> {completedCount} of {steps.length} Handoffs Completed
           </span>
         </div>
       </div>

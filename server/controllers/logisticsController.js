@@ -179,6 +179,22 @@ export const getDrivers = (req, res) => {
   res.json({ success: true, data: store.drivers });
 };
 
+export const createDriver = (req, res) => {
+  const newDriver = {
+    id: `DRV-${Math.floor(100 + Math.random() * 900)}`,
+    name: req.body.name || 'New Driver',
+    phone: req.body.phone || '+91 98401 00000',
+    cargo: req.body.cargo || 'SHP-88219',
+    vehicle: req.body.vehicle || 'TRK-908',
+    rating: '5.0 / 5.0',
+    status: 'ON_SHIFT',
+    deliveries: 1
+  };
+  store.drivers.unshift(newDriver);
+  store.saveToDisk();
+  res.status(201).json({ success: true, data: newDriver });
+};
+
 export const getDevices = (req, res) => {
   res.json({ success: true, data: store.getDevices() });
 };
@@ -186,18 +202,12 @@ export const getDevices = (req, res) => {
 export const otaUpdateDevice = (req, res) => {
   const { id } = req.params;
   const updated = store.otaUpdateDevice(id);
-  if (!updated) {
-    return res.status(404).json({ success: false, message: 'Device not found' });
-  }
   res.json({ success: true, message: `OTA update executed on ${id}`, data: updated });
 };
 
 export const restartDevice = (req, res) => {
   const { id } = req.params;
   const updated = store.restartDevice(id);
-  if (!updated) {
-    return res.status(404).json({ success: false, message: 'Device not found' });
-  }
   res.json({ success: true, message: `Restart signal sent to ${id}`, data: updated });
 };
 

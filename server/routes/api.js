@@ -16,6 +16,7 @@ import {
   addCustodyHandoff,
   getFleet,
   getDrivers,
+  createDriver,
   getDevices,
   otaUpdateDevice,
   restartDevice,
@@ -59,6 +60,7 @@ router.get('/fleet', getFleet);
 
 // Drivers API
 router.get('/drivers', getDrivers);
+router.post('/drivers', createDriver);
 
 // Devices API
 router.get('/devices', getDevices);

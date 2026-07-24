@@ -110,6 +110,13 @@ export const apiService = {
     return fetchJson('/drivers');
   },
 
+  async createDriver(driverData) {
+    return fetchJson('/drivers', {
+      method: 'POST',
+      body: JSON.stringify(driverData),
+    });
+  },
+
   // Devices
   async getDevices() {
     return fetchJson('/devices');
@@ -135,7 +142,7 @@ export const apiService = {
     });
   },
 
-  // Predictive AI Analytics
+  // Predictive Analytics
   async getAnalytics() {
     return fetchJson('/analytics');
   },

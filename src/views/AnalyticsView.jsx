@@ -36,7 +36,7 @@ export default function AnalyticsView({ isDarkMode = true }) {
         <div>
           <h2 className="text-lg font-bold flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-500" />
-            AI-POWERED PREDICTIVE LOGISTICS ANALYTICS
+            PREDICTIVE LOGISTICS & FLEET PERFORMANCE ANALYTICS
           </h2>
           <p className={`text-xs ${subText}`}>
             Thermal Degradation Models • Failure Horizon Prediction • Driver Compliance Matrix
@@ -47,15 +47,15 @@ export default function AnalyticsView({ isDarkMode = true }) {
           <span className={`px-3 py-1 border rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 ${
             isDarkMode ? 'bg-blue-950/80 text-blue-400 border-blue-800' : 'bg-blue-50 text-blue-700 border-blue-200'
           }`}>
-            <Cpu className="w-4 h-4 text-blue-400 animate-pulse" /> AI Model v3.9 Active
+            <Cpu className="w-4 h-4 text-blue-400 animate-pulse" /> Telematics Model Active
           </span>
         </div>
       </div>
 
-      {/* AI Risk Score Cards */}
+      {/* Risk Score Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className={`${cardBg} rounded-xl p-5 space-y-3`}>
-          <span className={`text-xs font-bold uppercase tracking-wider ${subText}`}>AI Thermal Risk Index</span>
+          <span className={`text-xs font-bold uppercase tracking-wider ${subText}`}>Thermal Risk Index</span>
           <div className="text-3xl font-black text-emerald-400 font-mono">{analyticsData.riskIndex} / 100</div>
           <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Overall fleet thermal risk. Insulation integrity across reefer fleet is nominal.</p>
         </div>
