@@ -7,6 +7,7 @@
  * Features:
  *   - DS18B20 OneWire Temp Probe (GPIO 4)
  *   - PIR Motion & Hatch Tamper Detection (GPIO 5)
+ *   - BOOT Button Tamper Reset (Hold GPIO 0 for > 5 seconds to clear breach)
  *   - MPU6050 6-Axis Accelerometer/Gyroscope I2C (SDA 8, SCL 9)
  *   - NEO-6M GPS Module UART (RX 18, TX 17) - Route: KCG College ➔ Adyar
  *   - Built-in WS2812 NeoPixel RGB Diagnostic LED (GPIO 48)
@@ -30,6 +31,7 @@
 // ====================================================================
 // HARDWARE PIN MAPPING
 // ====================================================================
+#define PIN_BOOT_BTN 0   // Onboard BOOT Button (Hold > 5 sec to reset tamper)
 #define PIN_DS18B20  4   // OneWire Temperature Probe (4.7kΩ Pull-up required)
 #define PIN_PIR      5   // PIR Motion / Hatch Tamper Sensor
 #define PIN_I2C_SDA  8   // MPU6050 I2C SDA
@@ -84,6 +86,11 @@ Adafruit_NeoPixel rgbLed(1, PIN_RGB_LED, NEO_GRB + NEO_KHZ800);
 unsigned long lastTelemetryTime = 0;
 const unsigned long TELEMETRY_INTERVAL_MS = 5000; // 5 Seconds Interval
 uint32_t packetSequenceCounter = 0;
+
+// Tamper Latch & BOOT Button Reset Variables
+bool tamperLatched = false;
+unsigned long bootPressStartTime = 0;
+const unsigned long BOOT_HOLD_TIME_MS = 5000; // 5 Seconds Hold Threshold
 
 // Color Constants for WS2812 RGB LED (GPIO 48)
 void setRgbColor(uint8_t r, uint8_t g, uint8_t b) {
@@ -159,6 +166,10 @@ void setup() {
   Serial.println("  Route: KCG College (Karapakkam) -> Adyar Courier");
   Serial.println("====================================================");
 
+  // Initialize Onboard BOOT Button (GPIO 0)
+  pinMode(PIN_BOOT_BTN, INPUT_PULLUP);
+  Serial.println("[OK] BOOT Button initialized on GPIO 0 (Hold >5s to reset tamper)");
+
   // Initialize Built-in RGB LED (GPIO 48) -> White (Booting)
   rgbLed.begin();
   setRgbColor(150, 150, 150); // ⚪ White Booting
@@ -218,7 +229,23 @@ void setup() {
 // MAIN LOOP
 // ====================================================================
 void loop() {
-  // Read GPS Serial Stream
+  // 1. BOOT Button (GPIO 0) > 5 Seconds Hold Detector
+  if (digitalRead(PIN_BOOT_BTN) == LOW) { // Button Pressed (Active LOW)
+    if (bootPressStartTime == 0) {
+      bootPressStartTime = millis();
+    } else if (millis() - bootPressStartTime >= BOOT_HOLD_TIME_MS) {
+      // BOOT button held for > 5 seconds -> Reset Tamper Latch!
+      if (tamperLatched) {
+        tamperLatched = false;
+        setRgbColor(0, 255, 0); // Reset LED to 🟢 Green Healthy
+        Serial.println("\n[TAMPER RESET] BOOT Button held > 5 sec! Tamper state CLEARED & System Armed to SECURE.");
+      }
+    }
+  } else {
+    bootPressStartTime = 0; // Reset press timer on button release
+  }
+
+  // 2. Read GPS Serial Stream
   while (gpsSerial.available() > 0) {
     gps.encode(gpsSerial.read());
   }
@@ -228,23 +255,23 @@ void loop() {
     connectToOpenNetwork();
   }
 
-  // Periodically Poll Sensors & Transmit Telemetry
+  // 3. Periodically Poll Sensors & Transmit Telemetry
   if (millis() - lastTelemetryTime >= TELEMETRY_INTERVAL_MS) {
     lastTelemetryTime = millis();
     packetSequenceCounter++;
 
-    // 1. Read DS18B20 Temperature
+    // Read DS18B20 Temperature
     tempSensor.requestTemperatures();
     float currentTempC = tempSensor.getTempCByIndex(0);
     if (currentTempC == DEVICE_DISCONNECTED_C) {
       currentTempC = -72.4; // Fallback simulation value if hardware unplugged
     }
 
-    // 2. Read PIR Motion Sensor
+    // Read PIR Motion Sensor
     int pirState = digitalRead(PIN_PIR);
     bool motionDetected = (pirState == HIGH);
 
-    // 3. Read MPU6050 Accelerometer / Gyroscope
+    // Read MPU6050 Accelerometer / Gyroscope
     sensors_event_t a, g, temp;
     mpu.getEvent(&a, &g, &temp);
 
@@ -254,7 +281,19 @@ void loop() {
     float totalAccel = sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ);
     bool shockDetected = (totalAccel > 15.0); // Shock threshold > 15 m/s²
 
-    // 4. Read GPS Coordinates (Hardcoded KCG College ➔ Adyar Route Transit Waypoints)
+    // Latch tamper state if motion or shock is detected
+    if (motionDetected || shockDetected) {
+      tamperLatched = true;
+    }
+
+    // Indicate LED Status
+    if (tamperLatched) {
+      setRgbColor(255, 0, 0); // 🔴 Red Flashing Tamper Breach
+    } else {
+      setRgbColor(0, 255, 0); // 🟢 Green Healthy
+    }
+
+    // Read GPS Coordinates (Hardcoded KCG College ➔ Adyar Route Transit Waypoints)
     float latitude = ROUTE_WAYPOINTS[currentWaypointIndex][0];
     float longitude = ROUTE_WAYPOINTS[currentWaypointIndex][1];
     if (gps.location.isValid()) {
@@ -265,20 +304,12 @@ void loop() {
 
     float speedKmh = gps.speed.isValid() ? gps.speed.kmh() : 48.5;
 
-    // Check Tamper Alert State
-    bool tamperAlert = motionDetected || shockDetected;
-    if (tamperAlert) {
-      setRgbColor(255, 0, 0); // 🔴 Red Flashing Tamper Detected
-    } else {
-      setRgbColor(0, 255, 0); // 🟢 Green Healthy
-    }
-
     // Construct Payload Snapshot String
     String payloadStr = "seq=" + String(packetSequenceCounter) +
                         "&temp=" + String(currentTempC, 2) +
                         "&lat=" + String(latitude, 6) +
                         "&lng=" + String(longitude, 6) +
-                        "&tamper=" + (tamperAlert ? "BREACH" : "SECURE");
+                        "&tamper=" + (tamperLatched ? "BREACH" : "SECURE");
 
     // Compute Cryptographic HMAC-SHA256 Signature
     String hmacSig = calculateHMAC(payloadStr, HMAC_KEY);
@@ -294,7 +325,7 @@ void loop() {
     jsonPayload += "\"destination\":\"" + String(ROUTE_DESTINATION) + "\",";
     jsonPayload += "\"motionDetected\":" + String(motionDetected ? "true" : "false") + ",";
     jsonPayload += "\"shockDetected\":" + String(shockDetected ? "true" : "false") + ",";
-    jsonPayload += "\"tamperStatus\":\"" + String(tamperAlert ? "POTENTIAL_BREACH" : "SECURE") + "\",";
+    jsonPayload += "\"tamperStatus\":\"" + String(tamperLatched ? "POTENTIAL_BREACH" : "SECURE") + "\",";
     jsonPayload += "\"accel\":{\"x\":" + String(accelX, 2) + ",\"y\":" + String(accelY, 2) + ",\"z\":" + String(accelZ, 2) + "},";
     jsonPayload += "\"gps\":{\"lat\":" + String(latitude, 6) + ",\"lng\":" + String(longitude, 6) + ",\"speed\":\"" + String(speedKmh, 1) + " km/h\"},";
     jsonPayload += "\"hmacVerified\":true,";
@@ -304,6 +335,7 @@ void loop() {
     Serial.println("\n----------------------------------------------------");
     Serial.println("[TELEMETRY PACKET #" + String(packetSequenceCounter) + "]");
     Serial.println("Route: KCG College (Karapakkam) -> Adyar Courier Service");
+    Serial.println("Tamper Latch State: " + String(tamperLatched ? "BREACH (Hold BOOT >5s to clear)" : "SECURE"));
     Serial.println("Payload JSON: " + jsonPayload);
     Serial.println("HMAC Signature: " + hmacSig);
 
@@ -323,7 +355,7 @@ void loop() {
       }
       http.end();
 
-      if (!tamperAlert) setRgbColor(0, 255, 0); // Reset to Green
+      if (!tamperLatched) setRgbColor(0, 255, 0); // Reset to Green
     }
   }
 }

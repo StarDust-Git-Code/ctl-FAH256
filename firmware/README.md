@@ -12,10 +12,22 @@ Industrial C++ firmware for the **ColdSecure ESP32-S3 Smart Cold Chain Hardware 
 
 ---
 
+## 🔘 Hardware Tamper Reset Feature (BOOT Button)
+
+- **BOOT Button Pin**: `GPIO 0` (Onboard DevKit BOOT button)
+- **How to Clear Tamper Alert**: Press and **hold the BOOT button for > 5 seconds** (5,000 ms).
+- **Behavior**:
+  1. Clears `tamperLatched` breach state.
+  2. Resets onboard NeoPixel RGB LED from 🔴 **Red Flashing** back to 🟢 **Green Healthy**.
+  3. Sends updated `"tamperStatus": "SECURE"` payload to the Render REST API to clear alerts on the main dashboard!
+
+---
+
 ## 🛠️ Hardware Pinout Mapping
 
 | Component | Pin | Function | Notes |
 |-----------|-----|----------|-------|
+| **BOOT Button** | `GPIO 0` | Tamper Breach Reset | Hold > 5 seconds to clear breach |
 | **DS18B20 Temp Probe** | `GPIO 4` | OneWire Data | Requires 4.7kΩ pull-up resistor to 3.3V |
 | **PIR Motion Sensor** | `GPIO 5` | Hatch / Door Breach | High = Motion / Tamper |
 | **MPU6050 IMU SDA** | `GPIO 8` | I2C Data | Vibration & Shock (> 15 m/s²) |
@@ -35,7 +47,7 @@ Industrial C++ firmware for the **ColdSecure ESP32-S3 Smart Cold Chain Hardware 
 | 🟢 **Green** | System healthy & operating in normal range |
 | 🟣 **Purple** | Cryptographic HMAC signature calculation & HTTP POST transmission |
 | 🟡 **Yellow** | Wi-Fi disconnect warning / Offline logging |
-| 🔴 **Red Flashing** | Tamper Breach or High Temperature Excursion detected! |
+| 🔴 **Red Flashing** | Tamper Breach or High Temperature Excursion detected! (Hold BOOT >5s to clear) |
 
 ---
 
