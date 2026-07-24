@@ -1,8 +1,16 @@
 // FAH256 Backend Data Store - Dynamic Production Telematics Engine for Render Server
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DB_FILE_PATH = path.join(__dirname, 'database.json');
 
 class TelematicsStore {
   constructor() {
     this.initEmptyData();
+    this.loadFromDisk();
   }
 
   initEmptyData() {
@@ -15,7 +23,7 @@ class TelematicsStore {
       integrityVerifiedPct: 100,
     };
 
-    // Zero mock data - empty state for production REST API operations
+    // Database Collections
     this.shipments = [];
     this.alerts = [];
     this.telemetrySeries = [];
@@ -33,9 +41,50 @@ class TelematicsStore {
     };
   }
 
+  loadFromDisk() {
+    try {
+      if (fs.existsSync(DB_FILE_PATH)) {
+        const raw = fs.readFileSync(DB_FILE_PATH, 'utf-8');
+        const data = JSON.parse(raw);
+        this.shipments = data.shipments || [];
+        this.alerts = data.alerts || [];
+        this.telemetrySeries = data.telemetrySeries || [];
+        this.chainOfCustody = data.chainOfCustody || [];
+        this.fleet = data.fleet || [];
+        this.drivers = data.drivers || [];
+        this.devices = data.devices || [];
+        this.settings = { ...this.settings, ...(data.settings || {}) };
+        this.systemHealth.activeGatewayNodes = this.shipments.length;
+        console.log(`[DB LOAD] Loaded ${this.shipments.length} shipments and ${this.chainOfCustody.length} custody logs from disk.`);
+      }
+    } catch (err) {
+      console.warn('[DB LOAD WARN] Could not load database.json:', err.message);
+    }
+  }
+
+  saveToDisk() {
+    try {
+      const dataToSave = {
+        shipments: this.shipments,
+        alerts: this.alerts,
+        telemetrySeries: this.telemetrySeries,
+        chainOfCustody: this.chainOfCustody,
+        fleet: this.fleet,
+        drivers: this.drivers,
+        devices: this.devices,
+        settings: this.settings,
+      };
+      fs.writeFileSync(DB_FILE_PATH, JSON.stringify(dataToSave, null, 2), 'utf-8');
+      console.log(`[DB SAVE] Persisted ${this.chainOfCustody.length} custody logs and ${this.shipments.length} shipments to Render disk.`);
+    } catch (err) {
+      console.error('[DB SAVE ERROR] Failed to write database.json:', err.message);
+    }
+  }
+
   // --- Reset All Data ---
   resetAllData() {
     this.initEmptyData();
+    this.saveToDisk();
     return { message: "All database collections wiped clean." };
   }
 
@@ -107,6 +156,7 @@ class TelematicsStore {
       }
     ];
     this.systemHealth.activeGatewayNodes = 1;
+    this.saveToDisk();
     return { message: "Sample dataset loaded." };
   }
 
@@ -154,6 +204,7 @@ class TelematicsStore {
     };
     this.shipments.unshift(newShipment);
     this.systemHealth.activeGatewayNodes = this.shipments.length;
+    this.saveToDisk();
     return newShipment;
   }
 
@@ -161,6 +212,7 @@ class TelematicsStore {
     const initialLen = this.shipments.length;
     this.shipments = this.shipments.filter(s => s.id !== id);
     this.systemHealth.activeGatewayNodes = this.shipments.length;
+    this.saveToDisk();
     return this.shipments.length < initialLen;
   }
 
@@ -168,6 +220,7 @@ class TelematicsStore {
     const index = this.shipments.findIndex(s => s.id === id);
     if (index !== -1) {
       this.shipments[index] = { ...this.shipments[index], ...updates };
+      this.saveToDisk();
       return this.shipments[index];
     }
     return null;
@@ -211,6 +264,7 @@ class TelematicsStore {
       }
     }
 
+    this.saveToDisk();
     return newHandoff;
   }
 
@@ -235,6 +289,7 @@ class TelematicsStore {
     };
     this.alerts.unshift(newAlert);
     this.systemHealth.activeAlertsCount = this.alerts.filter(a => a.status === 'ACTIVE').length;
+    this.saveToDisk();
     return newAlert;
   }
 
@@ -248,6 +303,7 @@ class TelematicsStore {
     if (dev) {
       dev.firmware = "v4.19.0-rt (Updated)";
       dev.lastSeen = "Just now";
+      this.saveToDisk();
       return dev;
     }
     return null;
@@ -259,6 +315,7 @@ class TelematicsStore {
       dev.lastSeen = "Just now";
       dev.ledError = false;
       dev.status = "ONLINE";
+      this.saveToDisk();
       return dev;
     }
     return null;
@@ -282,6 +339,7 @@ class TelematicsStore {
   // --- Settings ---
   updateSettings(newSettings) {
     this.settings = { ...this.settings, ...newSettings };
+    this.saveToDisk();
     return this.settings;
   }
 }
