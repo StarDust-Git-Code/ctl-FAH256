@@ -6,7 +6,7 @@
  * Route: KCG College of Technology (Karapakkam) ➔ Adyar Courier Hub, Chennai
  * Features:
  *   - DS18B20 OneWire Temp Probe (GPIO 4)
- *   - PIR Motion & Hatch Tamper Detection (GPIO 5)
+ *   - PIR Motion & Hatch Tamper Detection (GPIO 5 with Pull-down)
  *   - BOOT Button Single-Click Tamper Toggle (Press 1 time to unlatch/relatch tamper)
  *   - MPU6050 6-Axis Accelerometer/Gyroscope I2C (SDA 8, SCL 9)
  *   - NEO-6M GPS Module UART (RX 18, TX 17) - Route: KCG College ➔ Adyar
@@ -102,8 +102,9 @@ unsigned long lastTelemetryTime = 0;
 const unsigned long TELEMETRY_INTERVAL_MS = 5000; // 5 Seconds Interval
 uint32_t packetSequenceCounter = 0;
 
-// Tamper Latch & Single Click Toggle Variables
+// Tamper Latch & Manual Override Variables
 bool tamperLatched = false;
+bool manualUnlatched = false; // Prevents PIR re-triggering when unlatched via BOOT button
 int lastBtnState = HIGH;
 int currentBtnState = HIGH;
 unsigned long lastDebounceTime = 0;
@@ -192,12 +193,13 @@ void setup() {
   setRgbColor(150, 150, 150); // ⚪ White Booting
 
   // Initialize DS18B20 Temperature Probe
+  pinMode(PIN_DS18B20, INPUT_PULLUP);
   tempSensor.begin();
   Serial.println("[OK] DS18B20 Temperature Sensor initialized on GPIO 4");
 
-  // Initialize PIR Motion Sensor
-  pinMode(PIN_PIR, INPUT);
-  Serial.println("[OK] PIR Motion Sensor initialized on GPIO 5");
+  // Initialize PIR Motion Sensor (Internal Pull-down to prevent floating triggers)
+  pinMode(PIN_PIR, INPUT_PULLDOWN);
+  Serial.println("[OK] PIR Motion Sensor initialized on GPIO 5 (Pull-down active)");
 
   // Initialize MPU6050 I2C (SDA 8, SCL 9)
   Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
@@ -256,18 +258,21 @@ void loop() {
     if (reading != currentBtnState) {
       currentBtnState = reading;
       if (currentBtnState == LOW) { // Button Single Click Pressed (Active LOW)
-        tamperLatched = !tamperLatched; // Toggle unlatch state
+        tamperLatched = !tamperLatched; // Toggle tamper state
+        manualUnlatched = !tamperLatched; // Set manual override lock
+
         if (!tamperLatched) {
           setRgbColor(0, 255, 0); // Reset LED to 🟢 Green Healthy
           Serial.println("\n====================================================");
           Serial.println("  [BOOT CLICK TOGGLE] Tamper UNLATCHED!");
-          Serial.println("  Security status toggled to SECURE (Green LED).");
+          Serial.println("  Security status set to SECURE (Green LED).");
+          Serial.println("  Manual override ACTIVE: Motion sensor locked.");
           Serial.println("====================================================\n");
         } else {
           setRgbColor(255, 0, 0); // Set LED to 🔴 Red Breach
           Serial.println("\n====================================================");
           Serial.println("  [BOOT CLICK TOGGLE] Tamper LATCHED!");
-          Serial.println("  Security status toggled to POTENTIAL BREACH (Red LED).");
+          Serial.println("  Security status set to POTENTIAL BREACH (Red LED).");
           Serial.println("====================================================\n");
         }
       }
@@ -314,14 +319,14 @@ void loop() {
     float totalAccel = sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ);
     bool shockDetected = (totalAccel > 15.0); // Shock threshold > 15 m/s²
 
-    // Latch tamper state if motion or shock is detected (unless unlatched via BOOT click)
-    if (motionDetected || shockDetected) {
+    // Latch tamper state if motion or shock is detected (UNLESS manually unlatched via BOOT button)
+    if ((motionDetected || shockDetected) && !manualUnlatched) {
       tamperLatched = true;
     }
 
     // Indicate LED Status
     if (tamperLatched) {
-      setRgbColor(255, 0, 0); // 🔴 Red Flashing Tamper Breach
+      setRgbColor(255, 0, 0); // 🔴 Red Tamper Breach
     } else {
       setRgbColor(0, 255, 0); // 🟢 Green Healthy
     }
@@ -377,7 +382,7 @@ void loop() {
     Serial.println("  💥 MPU6050 3-Axis Accel     : X=" + String(accelX, 2) + " Y=" + String(accelY, 2) + " Z=" + String(accelZ, 2) + " (Shock: " + String(shockDetected ? "YES" : "NO") + ")");
     Serial.println("  📍 GPS Location Coordinates : Lat " + String(latitude, 6) + ", Lng " + String(longitude, 6) + " (" + String(speedKmh, 1) + " km/h)");
     Serial.println("  🗺 Transit Corridor Route   : KCG College (Karapakkam) ➔ Adyar Courier");
-    Serial.println("  🛡 Tamper Security State    : " + String(tamperLatched ? "🔴 BREACH LATCHED (Click BOOT to unlatch)" : "🟢 SECURE"));
+    Serial.println("  🛡 Tamper Security State    : " + String(tamperLatched ? "🔴 BREACH LATCHED" : "🟢 SECURE") + (manualUnlatched ? " [MANUALLY UNLATCHED]" : ""));
     Serial.println("  🔐 HMAC-SHA256 Signature    : " + hmacSig);
     Serial.println("  📦 JSON Payload String      : " + jsonPayload);
     Serial.println("--------------------------------------------------------------------");
@@ -406,7 +411,12 @@ void loop() {
       }
       http.end();
 
-      if (!tamperLatched) setRgbColor(0, 255, 0); // Reset to Green
+      // Always restore proper state LED (Green or Red) after purple transmission pulse
+      if (tamperLatched) {
+        setRgbColor(255, 0, 0); // 🔴 Red Breach
+      } else {
+        setRgbColor(0, 255, 0); // 🟢 Green Healthy
+      }
     } else {
       Serial.println("====================================================");
       Serial.println("  ⚠️ [RENDER PUSH SKIPPED] Wi-Fi Offline.");
