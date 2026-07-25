@@ -30,7 +30,7 @@ export default function App() {
   const [fleet, setFleet] = useState([]);
   const [selectedShipment, setSelectedShipment] = useState(null);
   const [systemHealth, setSystemHealth] = useState({ uptime: '99.98%' });
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false); // Default Light Theme
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
